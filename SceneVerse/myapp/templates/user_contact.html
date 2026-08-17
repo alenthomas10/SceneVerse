@@ -1,0 +1,47 @@
+{% extends "base_modern.html" %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row py-4 justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card bg-dark border-secondary shadow-lg">
+                <div class="card-header border-bottom border-secondary py-3">
+                    <h5 class="card-title mb-0"><i class="bi bi-person-lines-fill me-2 text-info"></i> Support & Contact</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="text-center py-4 bg-gradient-dark border-bottom border-secondary">
+                        <div class="mb-3 d-inline-flex justify-content-center align-items-center rounded-circle bg-primary text-white" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                            <i class="bi bi-headset"></i>
+                        </div>
+                        <h4 class="mb-0 text-white">Administrator Support</h4>
+                        <p class="text-muted mb-0">Contact us if you need help or have any inquiries</p>
+                    </div>
+                
+                    <ul class="list-group list-group-flush bg-transparent p-3">
+                        <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center py-3">
+                            <span class="d-flex align-items-center text-white-50"><i class="bi bi-envelope me-3 fs-5"></i> <strong>Support Email</strong></span>
+                            {% if admin %}
+                                <span class="fw-medium"><a href="mailto:{{ admin.email }}" class="text-info text-decoration-none">{{ admin.email }}</a></span>
+                            {% else %}
+                                <span class="fw-medium"><a href="mailto:support@sceneverse.com" class="text-info text-decoration-none">support@sceneverse.com</a></span>
+                            {% endif %}
+                        </li>
+                        <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center py-3">
+                            <span class="d-flex align-items-center text-white-50"><i class="bi bi-telephone me-3 fs-5"></i> <strong>Support Phone</strong></span>
+                            <span class="fw-medium">+91 9074636833</span>
+                        </li>
+                        <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center py-3">
+                            <span class="d-flex align-items-center text-white-50"><i class="bi bi-clock me-3 fs-5"></i> <strong>Business Hours</strong></span>
+                            <span class="fw-medium text-muted">Mon - Fri, 9:00 AM - 6:00 PM</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <p class="text-muted small">Responses usually take 1-2 business days.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

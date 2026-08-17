@@ -1,0 +1,90 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Edit Post - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 50px auto;
+        background: var(--card-bg);
+        padding: 40px;
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .post-preview {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 25px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .preview-media img, .preview-media video {
+        max-height: 300px;
+        width: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #000;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+    }
+
+    textarea.form-control {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border-color);
+        color: white;
+        border-radius: 12px;
+        padding: 15px;
+        transition: all 0.3s;
+    }
+
+    textarea.form-control:focus {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.25);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="form-container">
+        <div class="mb-4">
+            <h2 class="mb-0">Edit Post ✨</h2>
+        </div>
+
+        <div class="post-preview">
+            <p class="text-muted small mb-2">Media Preview</p>
+            <div class="preview-media">
+                {% if post.photopost_set.first %}
+                <img src="{{ post.photopost_set.first.image.url }}" alt="Post Image">
+                {% elif post.videopost_set.first %}
+                <video src="{{ post.videopost_set.first.video.url }}" controls></video>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label class="form-label">Caption</label>
+                <textarea class="form-control" name="caption" rows="5" placeholder="What's on your mind?" required>{{ post.caption }}</textarea>
+            </div>
+
+            <div class="d-flex justify-content-end gap-3 pt-3 border-top border-secondary">
+                <a href="/artprofile/" class="btn btn-outline-secondary px-4 rounded-pill">Cancel</a>
+                <button type="submit" class="btn btn-primary px-5 rounded-pill shadow">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

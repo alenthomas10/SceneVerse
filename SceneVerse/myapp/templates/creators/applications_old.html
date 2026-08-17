@@ -1,0 +1,392 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Applications - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Filter Card */
+    .filter-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+
+    .filter-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px;
+        color: var(--text-color);
+    }
+
+    .filter-card .card-body {
+        padding: 15px;
+    }
+
+    /* Content Card */
+    .content-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+    }
+
+    .content-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid var(--border-color);
+        padding: 15px;
+        color: var(--text-color);
+    }
+
+    /* Application Item */
+    .application-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+        transition: background 0.2s ease;
+    }
+
+    .application-item:last-child {
+        border-bottom: none;
+    }
+
+    .application-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .application-select {
+        margin-right: 15px;
+    }
+
+    .application-avatar {
+        margin-right: 15px;
+    }
+
+    .application-avatar img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .application-info {
+        flex: 1;
+    }
+
+    .application-info h5 {
+        font-size: 1rem;
+        margin-bottom: 4px;
+        color: var(--text-color);
+        font-weight: 600;
+    }
+
+    .application-info p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0;
+    }
+
+    .application-actions {
+        text-align: right;
+        min-width: 150px;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .status-new {
+        background: rgba(13, 110, 253, 0.2);
+        color: #0d6efd;
+    }
+
+    .status-reviewed {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+    }
+
+    .status-shortlisted {
+        background: rgba(25, 135, 84, 0.2);
+        color: #198754;
+    }
+
+    .status-rejected {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+    }
+
+    .application-date {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }
+
+    .section-title {
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .detail-section {
+        background: rgba(0, 0, 0, 0.2);
+        padding: 15px;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Applications 📝</h1>
+            <p class="text-muted">Review and manage applications for your casting calls.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filter Column -->
+        <div class="col-lg-3">
+            <div class="filter-card">
+                <div class="card-header">
+                    <h5 class="mb-0 fw-bold">Filter Applications</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="/applications/">
+                        <div class="mb-3">
+                            <label class="form-label">Project / Role</label>
+                            <select name="project_id" class="form-select bg-dark text-white border-secondary">
+                                <option value="">All Projects</option>
+                                {% for cc in creator_casting_calls %}
+                                <option value="{{ cc.id }}" {% if selected_project==cc.id %}selected{% endif %}>
+                                    {{ cc.project_title.project_title }} - {{ cc.role_title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="status" value="Pending"
+                                    id="status-new" {% if 'Pending' in selected_status %}checked{% endif %}>
+                                <label class="form-check-label" for="status-new">New (Pending)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="status" value="Short Listed"
+                                    id="status-shortlisted" {% if 'Short Listed' in selected_status %}checked{% endif
+                                    %}>
+                                <label class="form-check-label" for="status-shortlisted">Shortlisted</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="status" value="Reviewed"
+                                    id="status-reviewed" {% if 'Reviewed' in selected_status %}checked{% endif %}>
+                                <label class="form-check-label" for="status-reviewed">Reviewed</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Applications List -->
+        <div class="col-lg-9">
+            <div class="content-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold">{{ applications|length }} Applications</h5>
+                    <div class="d-flex gap-2">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown">
+                                Sort by: Newest
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="#">Newest First</a></li>
+                                <li><a class="dropdown-item" href="#">Oldest First</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="applications-list">
+                        {% for i in applications %}
+                        <div class="application-item">
+                            <div class="application-avatar">
+                                <a href="/view_artist_profile/{{ i.app.added_by.id }}/">
+                                    {% if i.app.details_of and i.app.details_of.avatarphoto %}
+                                    <img src="{{ i.app.details_of.avatarphoto.url }}" alt="Avatar">
+                                    {% else %}
+                                    <img src="https://ui-avatars.com/api/?name={{ i.app.added_by.first_name }}+{{ i.app.added_by.last_name }}"
+                                        alt="Avatar">
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class="application-info">
+                                <h5>
+                                    <a href="/view_artist_profile/{{ i.app.added_by.id }}/"
+                                        class="text-white text-decoration-none">
+                                        {{ i.app.added_by.first_name }} {{ i.app.added_by.last_name }}
+                                    </a>
+                                </h5>
+                                <p class="mb-0 text-muted">Applied for <strong class="text-white">{{ i.role }}</strong>
+                                    in <strong class="text-primary">{{ i.project }}</strong></p>
+                            </div>
+                            <div class="application-actions">
+                                <span class="status-badge status-{{ i.app.application_status|lower|slugify }}">
+                                    {{ i.app.application_status }}
+                                </span><br>
+                                <span class="application-date">{{ i.app.created_at|date:"M d, Y" }}</span>
+                                <div class="btn-group w-100 gap-1">
+                                    <button class="btn btn-sm btn-outline-secondary">Profile</button>
+                                    <button class="btn btn-sm btn-primary view-application-btn" data-id="{{ i.app.id }}"
+                                        data-name="{{ i.app.added_by.first_name }} {{ i.app.added_by.last_name }}"
+                                        data-role="{{ i.app.casting_id.role_title }}"
+                                        data-project="{{ i.app.casting_id.project_title }}"
+                                        data-message="{{ i.app.message|escapejs }}"
+                                        data-status="{{ i.app.application_status }}"
+                                        data-date="{{ i.app.created_at|date:'M d, Y' }}"
+                                        data-about="{{ i.app.details_of.about}}"
+                                        data-gender="{{ i.app.details_of.gender}}"
+                                        data-phone="{{ i.app.details_of.phone}}"
+                                        data-location="{{ i.app.details_of.location}}"
+                                        data-skills="{{ i.app.details_of.skillsinput}}"
+                                        data-email="{{ i.app.added_by.email}}"
+                                        data-avatar="{{ i.app.details_of.avatarphoto.url }}">
+                                        View
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pagination could go here -->
+        </div>
+    </div>
+</div>
+
+<!-- Application Detail Modal -->
+<div class="modal fade" id="applicationDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Application Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex align-items-start mb-4">
+                    <img src="" id="modalAvatar" class="rounded-circle me-3" width="80" height="80"
+                        style="object-fit:cover; border: 2px solid var(--primary-color);">
+                    <div>
+                        <h4 id="modalApplicantName" class="fw-bold mb-1"></h4>
+                        <p class="mb-1 text-muted">Applied for <strong class="text-white" id="modalRole"></strong> in
+                            <strong class="text-white" id="modalProject"></strong>
+                        </p>
+                        <span class="badge bg-dark border border-secondary" id="modalStatus"></span>
+                        <small class="text-muted ms-2"><i class="bi bi-calendar me-1"></i> <span
+                                id="modalDate"></span></small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="detail-section mb-4">
+                            <h5 class="section-title"><i class="bi-chat-square-text me-2"></i>Cover Letter</h5>
+                            <p id="modalMessage" class="text-white-50"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="detail-section mb-4">
+                            <h5 class="section-title"><i class="bi-info-circle me-2"></i>Key Details</h5>
+                            <div class="small">
+                                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                                    <span class="text-muted">Gender:</span>
+                                    <span class="text-white" id="modalGender"></span>
+                                </div>
+                                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                                    <span class="text-muted">Location:</span>
+                                    <span class="text-white" id="modalLocation"></span>
+                                </div>
+                                <div class="d-flex justify-content-between py-2 border-bottom border-secondary">
+                                    <span class="text-muted">Phone:</span>
+                                    <span class="text-white" id="modalPhone"></span>
+                                </div>
+                                <div class="d-flex justify-content-between py-2">
+                                    <span class="text-muted">Email:</span>
+                                    <span class="text-white" id="modalEmail"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="detail-section">
+                            <h5 class="section-title"><i class="bi-star me-2"></i>Skills</h5>
+                            <div id="modalSkills"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3 mt-3 rounded bg-dark border border-secondary">
+                    <h6 class="mb-2 fw-bold text-white">Update Status</h6>
+                    <form action="/manageapplication/" method="POST" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" id="modalId" name="mid">
+                        <button type="submit" name="button" value="review" class="btn btn-sm btn-outline-primary">Mark
+                            Reviewed</button>
+                        <button type="submit" name="button" value="shortlist"
+                            class="btn btn-sm btn-outline-success">Shortlist</button>
+                        <button type="submit" name="button" value="reject"
+                            class="btn btn-sm btn-outline-danger">Reject</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".view-application-btn").forEach(button => {
+            button.addEventListener("click", function () {
+                document.getElementById("modalId").value = this.dataset.id;
+                document.getElementById("modalApplicantName").textContent = this.dataset.name;
+                document.getElementById("modalAvatar").src = this.dataset.avatar || 'https://ui-avatars.com/api/?name=User';
+                document.getElementById("modalRole").textContent = this.dataset.role;
+                document.getElementById("modalProject").textContent = this.dataset.project;
+                document.getElementById("modalMessage").textContent = this.dataset.message;
+                document.getElementById("modalDate").textContent = this.dataset.date;
+                document.getElementById("modalGender").textContent = this.dataset.gender;
+                document.getElementById("modalPhone").textContent = this.dataset.phone;
+                document.getElementById("modalLocation").textContent = this.dataset.location;
+                document.getElementById("modalEmail").textContent = this.dataset.email;
+                document.getElementById("modalStatus").textContent = this.dataset.status;
+
+                const skillsElem = document.getElementById("modalSkills");
+                skillsElem.innerHTML = "";
+                if (this.dataset.skills) {
+                    this.dataset.skills.split(",").forEach(s => {
+                        skillsElem.innerHTML += `<span class="badge bg-secondary me-1 mb-1">${s.trim()}</span> `;
+                    });
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById("applicationDetailModal"));
+                modal.show();
+            });
+        });
+    });
+</script>
+{% endblock %}

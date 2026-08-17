@@ -1,0 +1,1154 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}My Profile - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'artists/css/artists.css' %}?v={% now 'U' %}" rel="stylesheet">
+<link href="{% static 'artists/css/profile.css' %}?v={% now 'U' %}" rel="stylesheet">
+<style>
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+
+    .search-box {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 10px 10px 10px 45px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        outline: none;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-color);
+    }
+
+
+    /* Feed Post Card */
+    .post-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin: 0 auto 25px auto;
+        max-width: 600px;
+        padding: 20px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .post-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .post-header img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border-color);
+    }
+
+    .post-media-container img,
+    .post-media-container video {
+        width: 100%;
+        border-radius: 8px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        height: 500px;
+        object-fit: contain;
+        background-color: #000;
+        background: #000;
+    }
+
+    .action-bar button {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.2rem;
+        margin-right: 15px;
+        transition: color 0.2s;
+    }
+
+    .action-bar button:hover {
+        color: white;
+    }
+
+    .like-active {
+        color: #ff3040 !important;
+    }
+
+    /* Comments Section */
+    .comment-box {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 10px 15px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+
+    .comment-box .comment-author {
+        font-weight: 700;
+        margin-right: 8px;
+        color: #fff;
+    }
+
+    textarea[name="comment"] {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid var(--border-color) !important;
+        color: white !important;
+        border-radius: 20px !important;
+    }
+
+    textarea[name="comment"]:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: none !important;
+    }
+
+    /* Custom Video Player */
+    .video-wrapper {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        background: black;
+    }
+
+    .video-wrapper:hover .custom-controls {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .custom-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .btn-control {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+    }
+
+    .btn-control:hover {
+        color: var(--primary-color);
+    }
+
+    .time-seek-bar {
+        flex-grow: 1;
+        cursor: pointer;
+        height: 5px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 5px;
+        position: relative;
+    }
+
+    .seek-fill {
+        height: 100%;
+        width: 0%;
+        background: var(--primary-color);
+        border-radius: 5px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+    }
+
+    .video-time {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.9);
+        font-family: monospace;
+        min-width: 80px;
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header -->
+<header class="content-header">
+    <div class="d-flex align-items-center w-100">
+        <button class="btn sidebar-toggle d-lg-none me-3 p-0 text-white border-0 bg-transparent">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <button class="btn btn-icon position-relative text-white" id="notificationBtn"
+                onclick="window.location.href='/chat/'">
+                <i class="bi bi-bell fs-5"></i>
+                <span id="chatNotificationBadge"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {% if unread_count == 0 %}d-none{% endif %}"
+                    style="font-size: 0.6rem;">{{ unread_count }}</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Profile Content -->
+<div class="content-area px-4 pb-5">
+    <!-- Profile Header -->
+    <section class="profile-header mb-4">
+        <div
+            class="d-flex flex-column flex-md-row bg-dark rounded-4 p-4 border border-secondary gap-4 align-items-center align-items-md-start">
+            <!-- Avatar -->
+            <div class="profile-avatar position-relative flex-shrink-0">
+                {% if details.avatarphoto %}
+                <img src="{{ details.avatarphoto.url }}" class="rounded-circle" width="150" height="150"
+                    style="object-fit: cover;">
+                {% else %}
+                <div class="bg-secondary rounded-circle" style="width: 150px; height: 150px;"></div>
+                {% endif %}
+                <!-- Edit Avatar Button -->
+                <form method="post" action="/editavatar/" enctype="multipart/form-data"
+                    class="position-absolute bottom-0 end-0">
+                    {% csrf_token %}
+                    <button type="button" class="btn btn-primary btn-sm rounded-circle p-2" id="editAvatarBtn"
+                        style="width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi-camera"></i>
+                    </button>
+                    <input type="file" name="image" id="fileInput" accept="image/*" style="display: none;">
+                </form>
+            </div>
+
+            <!-- Details -->
+            <div class="w-100">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-3">
+                    <div>
+                        <h1 class="h2 fw-bold mb-1">{{crt.first_name}} {{crt.last_name}}</h1>
+                        <p class="text-muted mb-0">{{details.title}}</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-outline-primary" id="editProfileBtn">
+                            <i class="bi-pencil me-2"></i>Edit Profile
+                        </button>
+                        <button class="btn btn-outline-secondary" id="shareProfileBtn">
+                            <i class="bi-share me-2"></i>Share
+                        </button>
+                    </div>
+                </div>
+
+                <div class="profile-stats d-flex gap-4 mb-3 border-top border-bottom border-secondary py-3">
+                    <div class="text-center px-3">
+                        <span class="d-block fw-bold h5 mb-0">{{ post_count }}</span>
+                        <small class="text-muted">Posts</small>
+                    </div>
+                </div>
+
+                <div class="text-muted small">
+                    <!-- <i class="bi-geo-alt me-2"></i>{{details.location|default:"Location not set"}} -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Profile Content Grid -->
+    <section class="profile-content-grid">
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-lg-4">
+                <!-- About Card -->
+                <div class="card bg-dark border-secondary mb-4">
+                    <div
+                        class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">About Me</h5>
+                        <button class="btn btn-sm btn-link text-muted" data-section="about">
+                            <i class="bi-pencil"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted small mb-4" id="aboutText">{{details.about}}</p>
+                        <div class="about-details d-flex flex-column gap-2 small">
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-gender-ambiguous text-muted"></i>
+                                <span>{{details.gender}}</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-geo-alt text-muted"></i>
+                                <span>{{details.location}}</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-briefcase text-muted"></i>
+                                <span>{{details.title}}</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-calendar text-muted"></i>
+                                <span>Joined on {{crt.created_at|date:"d/m/y"}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills & Specialties -->
+                <div class="card bg-dark border-secondary mb-4">
+                    <div
+                        class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Skills</h5>
+                        <button class="btn btn-sm btn-link text-muted" data-section="skills">
+                            <i class="bi-pencil"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="skills-list" id="skillsList">
+                            <span class="badge bg-secondary me-1">{{details.skillsinput}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="card bg-dark border-secondary mb-4">
+                    <div
+                        class="card-header bg-transparent border-secondary d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Contact</h5>
+                        <button class="btn btn-sm btn-link text-muted" data-section="contact">
+                            <i class="bi-pencil"></i>
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="contact-list d-flex flex-column gap-3 small">
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-envelope text-muted"></i>
+                                <span>{{crt.email}}</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-phone text-muted"></i>
+                                <span>{{details.phone}}</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-globe text-muted"></i>
+                                <span>{{details.personalwebsite}}</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <i class="bi-instagram text-muted"></i>
+                                <span>{{details.instagram}}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - User Posts -->
+            <div class="col-lg-8">
+                <h4 class="mb-4 text-white">My Posts</h4>
+                {% for post in all_artist_posts %}
+                <div class="post-card">
+                    <!-- Header -->
+                    <div class="d-flex align-items-center mb-3 post-header">
+                        <a href="#">
+                            {% if details.avatarphoto %}
+                            <img src="{{ details.avatarphoto.url }}" class="me-3" alt="Avatar">
+                            {% else %}
+                            <div class="me-3 rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+                                style="width:45px; height:45px; border: 2px solid var(--border-color);">
+                                <span class="text-white">{{ crt.first_name|slice:":1" }}</span>
+                            </div>
+                            {% endif %}
+                        </a>
+                        <div>
+                            <h6 class="mb-0 fw-bold text-white">
+                                {{ crt.first_name }} {{ crt.last_name }}
+                            </h6>
+                            <small class="text-muted">
+                                {{ details.title }} • {{ post.post.created_at|timesince }} ago
+                            </small>
+                        </div>
+                        <div class="dropdown ms-auto">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Manage
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark border-secondary">
+                                <li><a class="dropdown-item" href="/artists/edit_post/{{ post.post.id }}/"><i
+                                            class="bi-pencil me-2"></i>Edit</a></li>
+                                <li>
+                                    <hr class="dropdown-divider border-secondary">
+                                </li>
+                                <li>
+                                    <button class="dropdown-item text-danger" data-bs-toggle="modal"
+                                        data-bs-target="#deletePostModal{{ post.post.id }}">
+                                        <i class="bi-trash me-2"></i>Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <p class="mb-3 text-light">{{ post.post.caption }}</p>
+
+                    <!-- Media -->
+                    {% if post.post.all_media %}
+                    <div class="post-media-container">
+                        <div id="feedCarousel{{ post.post.id }}" class="carousel slide" data-bs-interval="false">
+                            <div class="carousel-inner">
+                                {% for media_item in post.post.all_media %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    {% if media_item.image %}
+                                    <img src="{{ media_item.image.url }}" class="d-block w-100" alt="Post Image">
+                                    {% elif media_item.video %}
+                                    <div class="video-wrapper">
+                                        <video class="d-block w-100 feed-video"
+                                            style="height: 500px; object-fit: contain; background-color: #000;"
+                                            data-start="{{ media_item.start_time|default:0 }}"
+                                            data-end="{{ media_item.end_time|default:'' }}">
+                                            <source src="{{ media_item.video.url }}" type="video/mp4">
+                                        </video>
+                                        <div class="custom-controls">
+                                            <button class="btn-control play-btn">
+                                                <i class="bi bi-play-fill fs-4"></i>
+                                            </button>
+                                            <button class="btn-control mute-btn ms-2">
+                                                <i class="bi bi-volume-up"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if post.post.all_media|length > 1 %}
+                            <button class="carousel-control-prev" type="button"
+                                data-bs-target="#feedCarousel{{ post.post.id }}" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button"
+                                data-bs-target="#feedCarousel{{ post.post.id }}" data-bs-slide="next">
+                                <span class="carousel-control-next-icon"></span>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Actions -->
+                    <div class="action-bar border-top border-secondary pt-3 mt-3 d-flex align-items-center">
+                        <form method="POST" action="/artistlike/" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                            <button type="submit"
+                                class="p-0 {% if post.post.id in creator_likes %}like-active{% endif %}">
+                                <i class="bi-heart{% if post.post.id in creator_likes %}-fill{% endif %}"></i>
+                                <span class="ms-1">{{ post.post.artistpostlike_set.count }}</span>
+                            </button>
+                        </form>
+                        <button class="p-0" data-bs-toggle="collapse" data-bs-target="#comments{{ post.post.id }}">
+                            <i class="bi-chat"></i>
+                            <span class="ms-1">{{ post.com|length }}</span>
+                        </button>
+                    </div>
+
+                    <!-- Comments -->
+                    <div class="collapse mt-3" id="comments{{ post.post.id }}">
+                        <div class="p-2">
+                            {% for comment in post.com %}
+                            <div class="comment-group mb-3">
+                                <!-- Parent Comment -->
+                                <div class="comment-box d-flex align-items-start" id="comment-{{ comment.id }}">
+                                    <a
+                                        href="{% if comment.commented_by.id == crt.id %}/artprofile/{% elif comment.commented_by.role == 'creator' %}{% url 'view_creator_profile' comment.commented_by.id %}{% else %}{% url 'view_artist_profile' comment.commented_by.id %}{% endif %}">
+                                        <img src="{% if comment.commented_by.artistdetails_set.first and comment.commented_by.artistdetails_set.first.avatarphoto %}{{ comment.commented_by.artistdetails_set.first.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{comment.commented_by.first_name}}{% endif %}"
+                                            class="rounded-circle me-2" width="30" height="30"
+                                            style="object-fit:cover;">
+                                    </a>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div>
+                                                <a href="{% if comment.commented_by.id == crt.id %}/artprofile/{% elif comment.commented_by.role == 'creator' %}{% url 'view_creator_profile' comment.commented_by.id %}{% else %}{% url 'view_artist_profile' comment.commented_by.id %}{% endif %}"
+                                                    class="comment-author text-primary small d-block font-weight-bold text-decoration-none">
+                                                    {{ comment.commented_by.first_name }} {{ comment.commented_by.last_name }}
+                                                </a>
+                                                <span class="text-white-50 comment-text">{{ comment.comment }}</span>
+                                                <div class="mt-1">
+                                                    <a href="#"
+                                                        class="btn-reply-comment text-muted small text-decoration-none"
+                                                        data-comment-id="{{ comment.id }}">
+                                                        <i class="bi bi-reply me-1"></i>Reply
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            <!-- Dropdown for Edit/Delete (if owner or post owner) -->
+                                            {% if comment.commented_by.id == request.session.aid or post.post.added_by.id == request.session.aid %}
+                                            <div class="dropdown">
+                                                <button class="btn btn-link btn-sm text-muted p-0"
+                                                    data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                                    {% if comment.commented_by.id == request.session.aid %}
+                                                    <li><a class="dropdown-item btn-edit-comment" href="#"
+                                                            data-comment-id="{{ comment.id }}"><i
+                                                                class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                    {% endif %}
+                                                    <li><a class="dropdown-item btn-delete-comment text-danger" href="#"
+                                                            data-comment-id="{{ comment.id }}"><i
+                                                                class="bi bi-trash me-2"></i>Delete</a></li>
+                                                </ul>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- Reply Form -->
+                                        <div class="reply-form-container mt-2" id="reply-form-{{ comment.id }}"
+                                            style="display: none;">
+                                            <form method="POST" action="/artistcomment/" class="text-end">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                                                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                                <textarea name="comment" class="form-control form-control-sm mb-2"
+                                                    rows="1" placeholder="Write a reply..." required></textarea>
+                                                <div class="d-flex justify-content-end gap-2">
+                                                    <button type="button"
+                                                        class="btn btn-sm btn-outline-secondary btn-cancel-reply"
+                                                        data-comment-id="{{ comment.id }}">Cancel</button>
+                                                    <button type="submit"
+                                                        class="btn btn-sm btn-primary px-3">Reply</button>
+                                                </div>
+                                            </form>
+                                        </div>
+
+                                        <!-- Replies -->
+                                        <div class="replies-container ms-4 border-start ps-3 mt-2"
+                                            id="replies-{{ comment.id }}">
+                                            {% for reply in comment.replies_list %}
+                                            <div class="comment-box d-flex align-items-start mt-2"
+                                                id="comment-{{ reply.id }}">
+                                                <a
+                                                    href="{% if reply.commented_by.id == crt.id %}/artprofile/{% elif reply.commented_by.role == 'creator' %}{% url 'view_creator_profile' reply.commented_by.id %}{% else %}{% url 'view_artist_profile' reply.commented_by.id %}{% endif %}">
+                                                    <img src="{% if reply.commented_by.artistdetails_set.first and reply.commented_by.artistdetails_set.first.avatarphoto %}{{ reply.commented_by.artistdetails_set.first.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{reply.commented_by.first_name}}{% endif %}"
+                                                        class="rounded-circle me-2" width="25" height="25"
+                                                        style="object-fit:cover;">
+                                                </a>
+                                                <div class="flex-grow-1">
+                                                    <div class="d-flex justify-content-between align-items-start">
+                                                        <div>
+                                                            <a href="{% if reply.commented_by.id == crt.id %}/artprofile/{% elif reply.commented_by.role == 'creator' %}{% url 'view_creator_profile' reply.commented_by.id %}{% else %}{% url 'view_artist_profile' reply.commented_by.id %}{% endif %}"
+                                                                class="comment-author text-info small d-block font-weight-bold text-decoration-none">
+                                                                {{ reply.commented_by.first_name }} {{ reply.commented_by.last_name }}
+                                                            </a>
+                                                            <span class="text-white-50 comment-text">{{ reply.comment }}</span>
+                                                        </div>
+                                                        {% if reply.commented_by.id == request.session.aid or post.post.added_by.id == request.session.aid %}
+                                                        <div class="dropdown">
+                                                            <button class="btn btn-link btn-sm text-muted p-0"
+                                                                data-bs-toggle="dropdown">
+                                                                <i class="bi bi-three-dots-vertical"></i>
+                                                            </button>
+                                                            <ul
+                                                                class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                                                {% if reply.commented_by.id == request.session.aid %}
+                                                                <li><a class="dropdown-item btn-edit-comment" href="#"
+                                                                        data-comment-id="{{ reply.id }}"><i
+                                                                            class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                                {% endif %}
+                                                                <li><a class="dropdown-item btn-delete-comment text-danger"
+                                                                        href="#" data-comment-id="{{ reply.id }}"><i
+                                                                            class="bi bi-trash me-2"></i>Delete</a></li>
+                                                            </ul>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+
+                            <form method="POST" action="/artistcomment/" class="mt-2 text-end">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                                <textarea name="comment" class="form-control mb-2" rows="1"
+                                    placeholder="Write a comment..." required></textarea>
+                                <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4">Post</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delete Post Modal for each post -->
+                <div class="modal fade" id="deletePostModal{{ post.post.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content bg-dark border-secondary">
+                            <div class="modal-header border-secondary">
+                                <h5 class="modal-title text-white">Delete Post?</h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center py-4 text-white">
+                                <i class="bi bi-trash3 text-danger display-4 mb-3"></i>
+                                <p>Are you sure you want to delete this post? This action cannot be undone and will delete all media and comments associated with it.</p>
+                            </div>
+                            <div class="modal-footer border-secondary">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form action="/artists/delete_post/{{ post.post.id }}/" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger px-4">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-5 text-muted card bg-dark border-secondary">
+                    <i class="bi bi-images display-1 mb-3"></i>
+                    <p>You haven't posted anything yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Profile</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/artprofile/" method="post" id="editProfileForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" name="first_name"
+                                value="{{crt.first_name}}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" name="last_name"
+                                value="{{crt.last_name}}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Professional Title</label>
+                        <input type="text" class="form-control bg-secondary text-white border-0" name="title"
+                            value="{{details.title}}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">About Me</label>
+                        <input type="text" class="form-control bg-secondary text-white border-0" name="about"
+                            placeholder="Tell others about yourself..." value="{{details.about}}">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Gender</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" name="gender"
+                                value="{{details.gender}}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" name="location"
+                                value="{{details.location}}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Skills & Specialties</label>
+                        <input type="text" class="form-control bg-secondary text-white border-0" id="skillsInput"
+                            name="skillsinput" placeholder="Add skills separated by commas"
+                            value="{{details.skillsinput}}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control bg-secondary text-white border-0" name="email"
+                            value="{{crt.email}}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Contact</label>
+                        <input type="tel" class="form-control bg-secondary text-white border-0" name="phone"
+                            id="phoneInput" value="{{details.phone}}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Personal Website</label>
+                        <input type="text" class="form-control bg-secondary text-white border-0" name="personalwebsite"
+                            value="{{details.personalwebsite}}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Instagram</label>
+                        <input type="text" class="form-control bg-secondary text-white border-0" name="instagram"
+                            value="{{details.instagram}}">
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="saveProfileBtn" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Comment Confirmation Modal -->
+<div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title text-white">Delete Comment?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4 text-white">
+                <i class="bi bi-trash3 text-danger display-4 mb-3"></i>
+                <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger px-4" id="confirmDeleteComment">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'artists/js/artists.js' %}?v={% now 'U' %}"></script>
+<script src="{% static 'artists/js/profile.js' %}?v={% now 'U' %}"></script>
+<script>
+    document.getElementById('shareProfileBtn').addEventListener('click', shareProfile); function shareProfile() {
+        if (navigator.share) {
+            navigator.share({
+                title: '{{crt.first_name}} {{crt.last_name}}',
+                text: 'Check out my profile on SceneVerse',
+                url: window.location.href,
+            })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing:', error));
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast('Profile link copied to clipboard!', 'success'); // replaced alert with showToast
+            });
+        }
+    }
+</script>
+<script>
+    // Include same AJAX logic for Likes/Comments as before, adapted if necessary
+    document.addEventListener('DOMContentLoaded', function () {
+        // Avatar Upload Handling
+        const editAvatarBtn = document.getElementById('editAvatarBtn');
+        const fileInput = document.getElementById('fileInput');
+        if (editAvatarBtn && fileInput) {
+            editAvatarBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => {
+                if (fileInput.files && fileInput.files[0]) {
+                    fileInput.closest('form').submit();
+                }
+            });
+        }
+
+        // Double-click prevention for Profile Edit
+        const editProfileForm = document.getElementById('editProfileForm');
+        if (editProfileForm) {
+            editProfileForm.addEventListener('submit', function() {
+                const btn = document.getElementById('saveProfileBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Saving...';
+                }
+            });
+        }
+
+        // --- A. AJAX for LIKES/UNLIKES (URL: /artistlike/) ---
+        document.querySelectorAll('.action-bar form[action="/artistlike/"]').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = this;
+                const actionUrl = form.getAttribute('action');
+                const postId = form.querySelector('input[name="post_id"]').value;
+                const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                const likeButton = form.querySelector('button');
+                const icon = likeButton.querySelector('i');
+
+                likeButton.disabled = true;
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ 'post_id': postId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.is_liked) {
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill');
+                                likeButton.classList.add('like-active');
+                            } else {
+                                icon.classList.remove('bi-heart-fill');
+                                icon.classList.add('bi-heart');
+                                likeButton.classList.remove('like-active');
+                            }
+                        }
+                    })
+                    .finally(() => { likeButton.disabled = false; });
+            });
+        });
+
+        // --- B. AJAX for COMMENTS & REPLIES (using event delegation) ---
+        document.addEventListener('submit', function (e) {
+            // Check if the submitted form is a comment form
+            if (e.target.matches('form[action="/artistcomment/"]')) {
+                e.preventDefault();
+                const form = e.target;
+                const actionUrl = form.getAttribute('action');
+                const formData = new FormData(form);
+                const submitButton = form.querySelector('button[type="submit"]');
+                const textarea = form.querySelector('textarea');
+                
+                if (textarea.value.trim().length === 0) {
+                    alert('Comment cannot be empty or just whitespace.');
+                    return;
+                }
+
+                const csrftoken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                const parentId = form.querySelector('input[name="parent_id"]')?.value;
+
+                submitButton.disabled = true;
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: new URLSearchParams(formData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (parentId) {
+                                // It's a reply
+                                const repliesContainer = document.getElementById(`replies-${parentId}`);
+                                if (repliesContainer) {
+                                    repliesContainer.insertAdjacentHTML('beforeend', data.comment_html);
+                                }
+                                // Hide the reply form
+                                const replyFormContainer = document.getElementById(`reply-form-${parentId}`);
+                                if (replyFormContainer) replyFormContainer.style.display = 'none';
+                            } else {
+                                // It's a top-level comment
+                                // Insert before the main comment form
+                                form.insertAdjacentHTML('beforebegin', data.comment_html);
+                            }
+                            // Clear and reset
+                            textarea.value = '';
+                        } else {
+                            alert('Error: ' + (data.error || 'Failed to post comment'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An unexpected error occurred.');
+                    })
+                    .finally(() => {
+                        submitButton.disabled = false;
+                    });
+            }
+        });
+
+        // --- B.1 TOGGLE REPLY FORM ---
+        document.addEventListener('click', function (e) {
+            const replyBtn = e.target.closest('.btn-reply-comment');
+            if (replyBtn) {
+                e.preventDefault();
+                const commentId = replyBtn.dataset.commentId;
+                const formContainer = document.getElementById(`reply-form-${commentId}`);
+                if (formContainer) {
+                    formContainer.style.display = formContainer.style.display === 'none' ? 'block' : 'none';
+                    if (formContainer.style.display === 'block') {
+                        formContainer.querySelector('textarea').focus();
+                    }
+                }
+            }
+
+            const cancelReplyBtn = e.target.closest('.btn-cancel-reply');
+            if (cancelReplyBtn) {
+                e.preventDefault();
+                const commentId = cancelReplyBtn.dataset.commentId;
+                const formContainer = document.getElementById(`reply-form-${commentId}`);
+                if (formContainer) formContainer.style.display = 'none';
+            }
+        });
+
+        // --- C. AJAX for DELETE COMMENT ---
+        let commentIdToDelete = null;
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteCommentModal'));
+
+        document.addEventListener('click', function (e) {
+            const deleteBtn = e.target.closest('.btn-delete-comment');
+            if (deleteBtn) {
+                e.preventDefault();
+                commentIdToDelete = deleteBtn.dataset.commentId;
+                deleteModal.show();
+            }
+        });
+
+        document.getElementById('confirmDeleteComment').addEventListener('click', function () {
+            if (!commentIdToDelete) return;
+
+            const btn = this;
+            btn.disabled = true;
+
+            fetch(`/delete_artist_comment/${commentIdToDelete}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const commentBox = document.getElementById(`comment-${commentIdToDelete}`);
+                        if (commentBox) commentBox.remove();
+                        deleteModal.hide();
+                    } else {
+                        alert('Error deleting comment');
+                    }
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    commentIdToDelete = null;
+                });
+        });
+
+        // --- D. AJAX for EDIT COMMENT ---
+        document.addEventListener('click', function (e) {
+            const editBtn = e.target.closest('.btn-edit-comment');
+            if (editBtn) {
+                e.preventDefault();
+                const commentId = editBtn.dataset.commentId;
+                const commentBox = document.getElementById(`comment-${commentId}`);
+                const textSpan = commentBox.querySelector('.comment-text');
+                const currentText = textSpan.innerText;
+
+                // Check if already editing
+                if (commentBox.querySelector('.edit-interface')) return;
+
+                // Create edit interface
+                const editDiv = document.createElement('div');
+                editDiv.className = 'mt-2 edit-interface';
+                editDiv.innerHTML = `
+                    <textarea class="form-control form-control-sm mb-2 edit-textarea">${currentText}</textarea>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary btn-save-edit" data-comment-id="${commentId}">Save</button>
+                        <button class="btn btn-sm btn-outline-secondary btn-cancel-edit">Cancel</button>
+                    </div>
+                `;
+
+                // Hide original text and dropdown
+                textSpan.style.display = 'none';
+                const dropdown = commentBox.querySelector('.dropdown');
+                if (dropdown) dropdown.style.display = 'none';
+                textSpan.parentNode.appendChild(editDiv);
+
+                // Handle Cancel
+                editDiv.querySelector('.btn-cancel-edit').addEventListener('click', function () {
+                    editDiv.remove();
+                    textSpan.style.display = 'inline';
+                    if (dropdown) dropdown.style.display = 'block';
+                });
+
+                // Handle Save
+                editDiv.querySelector('.btn-save-edit').addEventListener('click', function () {
+                    const newText = editDiv.querySelector('.edit-textarea').value;
+                    if (newText.trim().length === 0) {
+                        alert('Comment cannot be empty or just whitespace.');
+                        return;
+                    }
+                    const saveBtn = this;
+                    saveBtn.disabled = true;
+
+                    fetch(`/edit_artist_comment/${commentId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ 'comment': newText })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                textSpan.innerText = data.new_text;
+                                editDiv.remove();
+                                textSpan.style.display = 'inline';
+                                if (dropdown) dropdown.style.display = 'block';
+                            } else {
+                                alert('Error saving comment');
+                                saveBtn.disabled = false;
+                            }
+                        });
+                });
+            }
+        });
+
+        // --- Custom Video Player Logic (Profile) ---
+        document.querySelectorAll('.video-wrapper').forEach(wrapper => {
+            const video = wrapper.querySelector('video');
+            const playBtn = wrapper.querySelector('.play-btn');
+            const seekBar = wrapper.querySelector('.time-seek-bar');
+            const seekFill = wrapper.querySelector('.seek-fill');
+            const timeDisplay = wrapper.querySelector('.video-time');
+            const muteBtn = wrapper.querySelector('.mute-btn');
+
+            // Parse Metadata
+            let start = parseFloat(video.dataset.start) || 0;
+            let endStr = video.dataset.end;
+            let end = (endStr && endStr !== "None") ? parseFloat(endStr) : null;
+            let isDragging = false;
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = Math.floor(seconds % 60);
+                return `${m}:${s < 10 ? '0' : ''}${s}`;
+            };
+
+            const initPlayer = () => {
+                const duration = (end || video.duration) - start;
+                if (!isNaN(duration) && duration > 0) {
+                    timeDisplay.innerText = `0:00 / ${formatTime(duration)}`;
+                }
+            };
+
+            const togglePlay = () => {
+                if (video.paused) {
+                    // PAUSE ALL OTHER VIDEOS
+                    document.querySelectorAll('video').forEach(otherVideo => {
+                        if (otherVideo !== video) {
+                            otherVideo.pause();
+                            const otherWrapper = otherVideo.closest('.video-wrapper');
+                            if (otherWrapper) {
+                                const otherPlayBtn = otherWrapper.querySelector('.play-btn');
+                                if (otherPlayBtn) otherPlayBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+                            }
+                        }
+                    });
+
+                    // Reset to start if finished or before start
+                    if (end && video.currentTime >= end) {
+                        video.currentTime = start;
+                    } else if (video.currentTime < start) {
+                        video.currentTime = start;
+                    }
+
+                    video.play();
+                    playBtn.innerHTML = '<i class="bi bi-pause-fill fs-4"></i>';
+                } else {
+                    video.pause();
+                    playBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+                }
+            };
+
+            // LIGHTWEIGHT END CHECK ONLY
+            const checkEnd = () => {
+                const safeEnd = end || video.duration;
+                if (!safeEnd) return;
+
+                if (video.currentTime >= safeEnd) {
+                    video.pause();
+                    video.currentTime = start;
+                    playBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+                }
+            };
+
+            if (playBtn) playBtn.addEventListener('click', togglePlay);
+            video.addEventListener('click', togglePlay);
+            const enforceStartTime = () => {
+                // Add a small buffer to prevent infinite loops if playback is slightly off
+                if (start > 0 && video.currentTime < (start - 0.1)) {
+                    video.currentTime = start;
+                }
+            };
+
+            // Enforce on play/metadata, but NOT on timeupdate to avoid lag
+            video.addEventListener('loadedmetadata', enforceStartTime);
+            video.addEventListener('play', enforceStartTime);
+
+            // Standard timeupdate for end checking only
+            video.addEventListener('timeupdate', checkEnd);
+
+            if (video.readyState >= 1) {
+                enforceStartTime();
+            }
+
+            if (seekBar) {
+                seekBar.addEventListener('mousedown', (e) => { isDragging = true; handleSeek(e); });
+                document.addEventListener('mousemove', (e) => { if (isDragging) handleSeek(e); });
+                document.addEventListener('mouseup', () => { if (isDragging) isDragging = false; });
+            }
+
+            const handleSeek = (e) => {
+                const rect = seekBar.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const width = rect.width;
+                const percent = Math.max(0, Math.min(1, x / width));
+                seekFill.style.width = `${percent * 100}%`;
+                const safeEnd = end || video.duration;
+                const totalDuration = safeEnd - start;
+                video.currentTime = start + (percent * totalDuration);
+            };
+
+            if (muteBtn) {
+                muteBtn.addEventListener('click', () => {
+                    video.muted = !video.muted;
+                    muteBtn.innerHTML = video.muted ? '<i class="bi bi-volume-mute"></i>' : '<i class="bi bi-volume-up"></i>';
+                });
+            }
+
+            // Hover to Play Logic
+            wrapper.addEventListener('mouseenter', () => {
+                if (video.paused) togglePlay();
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                if (!video.paused) togglePlay();
+            });
+        });
+
+    });
+</script>
+{% endblock %}

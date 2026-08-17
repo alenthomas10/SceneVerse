@@ -1,0 +1,439 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Comments Management - SceneVerse Admin{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'admin/css/admin.css' %}" rel="stylesheet">
+<style>
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+
+    .nav-tabs {
+        border-bottom-color: var(--border-color);
+    }
+
+    .nav-tabs .nav-link {
+        color: var(--text-muted);
+        border: none;
+        padding: 1rem 1.5rem;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: transparent;
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header -->
+<header class="content-header">
+    <div class="d-flex align-items-center w-100">
+        <button class="btn sidebar-toggle d-lg-none me-3 p-0 text-white border-0 bg-transparent">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+        <div class="header-title">
+            <h1 class="h3 mb-1">Comments Management</h1>
+            <p class="text-muted mb-0">Manage all platform project and post comments</p>
+        </div>
+    </div>
+</header>
+
+<!-- Dashboard Content -->
+<div class="content-area px-4 pb-5">
+    <!-- Stats Section -->
+    <section class="stats-section mb-4">
+        <div class="row">
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-primary text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-chat-dots"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.total }}</h4>
+                    <small class="text-muted">Total Comments</small>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-info text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-folder"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.project }}</h4>
+                    <small class="text-muted">Project Total</small>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-success text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-person-video"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.post }}</h4>
+                    <small class="text-muted">Post Total</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-warning text-dark rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.project_today }}</h4>
+                    <small class="text-muted">New Project (24h)</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-secondary text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.post_today }}</h4>
+                    <small class="text-muted">New Post (24h)</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Table Section with Tabs -->
+    <section class="table-section">
+        <div class="card bg-dark border-secondary">
+            <div
+                class="card-header bg-transparent border-secondary py-0 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <ul class="nav nav-tabs border-0" id="commentTabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="project-tab" data-bs-toggle="tab"
+                            data-bs-target="#project-comments">
+                            Project Comments
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="post-tab" data-bs-toggle="tab" data-bs-target="#post-comments">
+                            Artist Post Comments
+                        </button>
+                    </li>
+                </ul>
+                <div class="py-2">
+                    <form action="/manage_admin/manage_comments/" method="GET" class="d-flex flex-column gap-1 w-100 w-md-auto" onsubmit="return validateSearch(this)" novalidate>
+                        <div class="search-error text-danger mb-1" style="display: none;">
+                            <i class="bi bi-exclamation-circle me-1"></i>Please enter a search term.
+                        </div>
+                        <div class="d-flex gap-2 align-items-center">
+                            <div class="search-box position-relative">
+                                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                                <input type="text" name="search" placeholder="Search comments..."
+                                    class="form-control bg-dark border-secondary text-white ps-5" value="{{ request.GET.search }}" style="outline:none;">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-search me-2"></i>Search
+                            </button>
+                            {% if request.GET.search %}
+                            <a href="/manage_admin/manage_comments/" class="btn btn-outline-secondary">Clear</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="commentTabsContent">
+                    <!-- Project Comments -->
+                    <div class="tab-pane fade show active" id="project-comments">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Project Name</th>
+                                        <th>Commenter</th>
+                                        <th>Comment Message</th>
+                                        <th>Posted On</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for comment in p_comments %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold">{{ comment.project.project_title }}</div>
+                                            <small class="text-muted">{{ comment.project.project_type }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2 bg-secondary rounded-circle d-flex align-items-center justify-content-center"
+                                                    style="width: 25px; height: 25px;">
+                                                    <i class="bi bi-person text-white" style="font-size: 0.8rem;"></i>
+                                                </div>
+                                                <span>{{ comment.added_by.first_name }} {{ comment.added_by.last_name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-wrap" style="max-width:350px;">
+                                            <div class="comment-bubble bg-transparent p-0">
+                                                {{ comment.comment }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted d-block">{{ comment.created_at|date:"M d, Y" }}</small>
+                                            <small class="text-muted">{{ comment.created_at|time:"H:i" }}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                onclick="confirmDelete('{{ comment.id }}', 'project')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">No project comments found.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Post Comments -->
+                    <div class="tab-pane fade" id="post-comments">
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover users-table">
+                                <thead>
+                                    <tr>
+                                        <th>Media Preview</th>
+                                        <th>Artist Post</th>
+                                        <th>Commenter</th>
+                                        <th>Comment Message</th>
+                                        <th>Posted On</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for comment in a_comments %}
+                                    <tr>
+                                        <td>
+                                            <div class="position-relative d-inline-block" style="cursor: pointer;"
+                                                onclick="openMediaGallery('{{ comment.post.id }}-{{ comment.id }}')">
+                                                {% with photo=comment.post.photopost_set.first video=comment.post.videopost_set.first %}
+                                                {% if photo %}
+                                                <img src="{{ photo.image.url }}"
+                                                    class="thumb-preview rounded border border-secondary"
+                                                    style="width: 80px; height: 60px; object-fit: cover;"
+                                                    alt="Post Media">
+                                                {% elif video %}
+                                                <video src="{{ video.video.url }}"
+                                                    class="thumb-preview rounded border border-secondary"
+                                                    style="width: 80px; height: 60px; object-fit: cover;"></video>
+                                                <div class="position-absolute top-50 start-50 translate-middle">
+                                                    <i class="bi bi-play-circle-fill text-white fs-4 opa-75"></i>
+                                                </div>
+                                                {% else %}
+                                                <div class="thumb-preview d-flex align-items-center justify-content-center text-muted border border-secondary rounded"
+                                                    style="width: 80px; height: 60px;">
+                                                    <i class="bi bi-card-text fs-4"></i>
+                                                </div>
+                                                {% endif %}
+
+                                                {% with p_count=comment.post.photopost_set.count v_count=comment.post.videopost_set.count %}
+                                                {% if p_count|add:v_count > 1 %}
+                                                <div
+                                                    class="position-absolute bottom-0 end-0 bg-dark bg-opacity-75 text-white px-1 rounded-start small">
+                                                    +{{ p_count|add:v_count|add:"-1" }}
+                                                </div>
+                                                {% endif %}
+                                                {% endwith %}
+                                                {% endwith %}
+                                            </div>
+
+                                            <!-- Hidden Media Data -->
+                                            <div id="media-data-{{ comment.post.id }}-{{ comment.id }}" class="d-none">
+                                                {% for p in comment.post.photopost_set.all %}
+                                                <div data-type="image" data-url="{{ p.image.url }}"></div>
+                                                {% endfor %}
+                                                {% for v in comment.post.videopost_set.all %}
+                                                <div data-type="video" data-url="{{ v.video.url }}"
+                                                    data-start="{{ v.start_time }}"
+                                                    data-end="{{ v.end_time|default:'' }}"></div>
+                                                {% endfor %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold">Post #{{ comment.post.id }}</div>
+                                            <small class="text-muted">By {{ comment.post.added_by.first_name }}</small>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar-sm me-2 bg-secondary rounded-circle d-flex align-items-center justify-content-center"
+                                                    style="width: 25px; height: 25px;">
+                                                    <i class="bi bi-person text-white" style="font-size: 0.8rem;"></i>
+                                                </div>
+                                                <span>{{ comment.commented_by.first_name }} {{ comment.commented_by.last_name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-wrap" style="max-width:350px;">
+                                            <div class="comment-bubble bg-transparent p-0">
+                                                {{ comment.comment }}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted d-block">{{ comment.created_at|date:"M d, Y" }}</small>
+                                            <small class="text-muted">{{ comment.created_at|time:"H:i" }}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-sm btn-outline-danger"
+                                                onclick="confirmDelete('{{ comment.id }}', 'artist')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="5" class="text-center py-4 text-muted">No artist post comments
+                                            found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="#" id="confirmDeleteBtn" class="btn btn-danger px-4">Delete</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Media Gallery Modal -->
+<div class="modal fade" id="mediaGalleryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary border-0 position-absolute w-100"
+                style="z-index: 1056; background: rgba(0,0,0,0.5);">
+                <span class="modal-title fs-6" id="mediaCounter"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-black d-flex align-items-center justify-content-center" style="height: 80vh;">
+                <button class="btn btn-link text-white position-absolute start-0 ms-2" onclick="changeSlide(-1)"
+                    style="z-index: 1056; font-size: 2rem;">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+
+                <div id="mediaContainer" class="w-100 h-100 d-flex align-items-center justify-content-center">
+                    <!-- Media will be injected here -->
+                </div>
+
+                <button class="btn btn-link text-white position-absolute end-0 me-2" onclick="changeSlide(1)"
+                    style="z-index: 1056; font-size: 2rem;">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function confirmDelete(id, type) {
+        document.getElementById('confirmDeleteBtn').href = '/manage_admin/delete_comment/' + id + '/' + type + '/';
+        new bootstrap.Modal(document.getElementById('deleteModal')).show();
+    }
+
+    let currentMediaList = [];
+    let currentIndex = 0;
+
+    function openMediaGallery(uniqueId) {
+        const dataDiv = document.getElementById('media-data-' + uniqueId);
+        if (!dataDiv) return;
+
+        currentMediaList = [];
+        Array.from(dataDiv.children).forEach(child => {
+            currentMediaList.push({
+                type: child.dataset.type,
+                url: child.dataset.url,
+                start: child.dataset.start,
+                end: child.dataset.end
+            });
+        });
+
+        if (currentMediaList.length === 0) return;
+
+        currentIndex = 0;
+        updateGalleryView();
+        new bootstrap.Modal(document.getElementById('mediaGalleryModal')).show();
+    }
+
+    function changeSlide(direction) {
+        currentIndex += direction;
+        if (currentIndex < 0) currentIndex = currentMediaList.length - 1;
+        if (currentIndex >= currentMediaList.length) currentIndex = 0;
+        updateGalleryView();
+    }
+
+    function updateGalleryView() {
+        const container = document.getElementById('mediaContainer');
+        const counter = document.getElementById('mediaCounter');
+        const media = currentMediaList[currentIndex];
+
+        counter.innerText = `${currentIndex + 1} / ${currentMediaList.length}`;
+        container.innerHTML = '';
+
+        if (media.type === 'image') {
+            const img = document.createElement('img');
+            img.src = media.url;
+            img.className = 'img-fluid';
+            img.style.maxHeight = '100%';
+            img.style.maxWidth = '100%';
+            container.appendChild(img);
+        } else if (media.type === 'video') {
+            const video = document.createElement('video');
+            let src = media.url;
+            if (media.start || media.end) {
+                src += '#t=';
+                if (media.start) src += media.start;
+                if (media.end) src += ',' + media.end;
+            }
+            video.src = src;
+            video.controls = true;
+            video.autoplay = true;
+            video.className = 'w-100';
+            video.style.maxHeight = '100%';
+            container.appendChild(video);
+        }
+    }
+
+    // Stop video when modal closes
+    document.getElementById('mediaGalleryModal').addEventListener('hidden.bs.modal', function () {
+        document.getElementById('mediaContainer').innerHTML = '';
+    });
+
+    // Reset search on tab change removed as it conflicts with server-side filtering
+</script>
+{% endblock %}

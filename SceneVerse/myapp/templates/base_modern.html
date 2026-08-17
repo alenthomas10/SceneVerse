@@ -1,0 +1,561 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SceneVerse{% endblock %}</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
+    <style>
+        :root {
+            /* Legacy Theme Colors */
+            --primary-color: #8b6b4c;
+            /* Brown Accent */
+            --primary-hover: #6d4c3d;
+            --bg-color: #1a1a1a;
+            --sidebar-bg: #111;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #111 0%, var(--bg-color) 100%);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            height: 100vh;
+            position: fixed;
+            z-index: 1000;
+            overflow-y: auto;
+            /* Enable vertical scrolling */
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-brand i {
+            color: var(--primary-color);
+        }
+
+        .nav-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-link {
+            color: var(--text-muted);
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(139, 107, 76, 0.1);
+            color: var(--text-color);
+        }
+
+        .nav-link.active {
+            background-color: rgba(139, 107, 76, 0.2);
+            color: var(--primary-color);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .nav-link i {
+            font-size: 1.2rem;
+        }
+
+        /* Content Area */
+        .content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            overflow-y: auto;
+            position: relative;
+            background-color: var(--bg-color);
+        }
+
+        /* Common Components */
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 10px;
+            padding: 0.6rem 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            border-color: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 107, 76, 0.3);
+        }
+
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-outline-primary:hover {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        /* Search Dropdown Styles */
+        .search-wrapper {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: 10px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 2000;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-result-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .search-result-item:hover {
+            background: rgba(139, 107, 76, 0.2);
+            color: var(--primary-color);
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--border-color);
+        }
+
+        .search-result-info h6 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .search-result-info small {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .form-control,
+        .form-select {
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(0, 0, 0, 0.4);
+            border-color: var(--primary-color);
+            color: var(--text-color);
+            box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.25);
+        }
+
+        .text-muted {
+            color: var(--text-muted) !important;
+        }
+
+        /* Global Modal Styling */
+        .modal-content {
+            background-color: #222;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: var(--border-color);
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        /* Messages Styling - Floating Toast */
+        .messages-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            width: auto;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .toast-message {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            color: white !important;
+            border-radius: 12px;
+            padding: 12px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast-message.success { border-color: rgba(74, 222, 128, 0.5); }
+        .toast-message.error { border-color: rgba(248, 113, 113, 0.5); }
+        .toast-message.warning { border-color: rgba(251, 191, 36, 0.5); }
+
+        .search-error {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            padding-left: 10px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 991px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        {% if not hide_sidebar %}
+        {% include 'includes/sidebar.html' %}
+        {% endif %}
+
+        <!-- Main Content -->
+        <main class="content" {% if hide_sidebar %}style="margin-left: 0;" {% endif %}>
+            {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                <div class="toast-message {{ message.tags }}">
+                    {% if message.tags == 'success' %}<i class="bi bi-check-circle text-success"></i>
+                    {% elif message.tags == 'error' %}<i class="bi bi-exclamation-circle text-danger"></i>
+                    {% endif %}
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if not hide_back_button %}
+            <div class="px-4 pt-4">
+                {% block back_button %}
+                <a href="javascript:void(0);" onclick="if(document.referrer.includes(window.location.hostname)) { window.history.back(); } else { window.location.href='/'; } return false;" class="btn btn-link text-white text-decoration-none p-0 mb-3">
+                    <i class="bi bi-arrow-left me-2"></i>Back
+                </a>
+                {% endblock %}
+            </div>
+            {% endif %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // CSRF Token setup for AJAX
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // Sidebar Toggle Logic
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            // Listen for clicks on any element with class .sidebar-toggle
+            document.body.addEventListener('click', function (e) {
+                if (e.target.closest('.sidebar-toggle')) {
+                    sidebar.classList.toggle('show');
+                }
+            });
+        });
+    </script>
+    <!-- Global Logout Modal -->
+    <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-box-arrow-right display-1 text-danger mb-3"></i>
+                    <h4>Are you sure you want to logout?</h4>
+                    <p class="text-muted">You will need to login again to access your dashboard.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <a href="/logout/" class="btn btn-danger px-4">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- search JS -->
+    <script>
+        function validateSearch(form) {
+            const input = form.querySelector('input[name="q"]');
+            const errorDiv = form.querySelector('.search-error');
+            
+            if (input.value.trim() === '') {
+                if (errorDiv) {
+                    errorDiv.style.display = 'block';
+                    input.focus();
+                }
+                return false;
+            }
+            
+            if (errorDiv) {
+                errorDiv.style.display = 'none';
+            }
+            return true;
+        }
+
+        /**
+         * Global toast notification system
+         * @param {string} message - The message to display
+         * @param {string} type - 'success', 'error', or 'warning'
+         */
+        function showToast(message, type = 'success') {
+            let container = document.querySelector('.messages-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'messages-container';
+                document.body.appendChild(container);
+            }
+
+            const toast = document.createElement('div');
+            toast.className = `toast-message ${type}`;
+            
+            let icon = 'bi-check-circle';
+            if (type === 'error' || type === 'danger') {
+                icon = 'bi-exclamation-circle text-danger';
+                toast.classList.add('error'); // Ensure 'error' class is added for danger type
+            } else if (type === 'warning') {
+                icon = 'bi-exclamation-triangle text-warning';
+            }
+
+            toast.innerHTML = `<i class="bi ${icon}"></i> ${message}`;
+            container.appendChild(toast);
+
+            // Auto-dismiss after 4 seconds
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.5s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 500);
+            }, 4000);
+        }
+
+        function initUserSearch(inputId, resultsId) {
+            const input = document.getElementById(inputId);
+            const results = document.getElementById(resultsId);
+            let timeout = null;
+
+            if (!input || !results) return;
+
+            input.addEventListener('input', () => {
+                clearTimeout(timeout);
+                const query = input.value.trim();
+
+                if (query.length < 2) {
+                    results.classList.add('d-none');
+                    return;
+                }
+
+                timeout = setTimeout(() => {
+                    fetch(`/api/search-users/?q=${encodeURIComponent(query)}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            results.innerHTML = '';
+                            if (data.users && data.users.length > 0) {
+                                data.users.forEach(user => {
+                                    const item = document.createElement('a');
+                                    item.href = user.profile_url;
+                                    item.className = 'search-result-item';
+                                    item.innerHTML = `
+                                        <img src="${user.avatar}" onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}'">
+                                        <div class="search-result-info">
+                                            <h6>${user.name}</h6>
+                                            <small>${user.role} • ${user.email}</small>
+                                        </div>
+                                    `;
+                                    results.appendChild(item);
+                                });
+                                results.classList.remove('d-none');
+                            } else {
+                                results.innerHTML = '<div class="p-3 text-center text-muted small">No users found</div>';
+                                results.classList.remove('d-none');
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Search error:', err);
+                        });
+                }, 300);
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!input.contains(e.target) && !results.contains(e.target)) {
+                    results.classList.add('d-none');
+                }
+            });
+
+            // Re-open on focus if query exists
+            input.addEventListener('focus', () => {
+                if (input.value.trim().length >= 2 && results.children.length > 0) {
+                    results.classList.remove('d-none');
+                }
+            });
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Poll for unread messages every 10 seconds
+        function updateUnreadCount() {
+            fetch('/api/get-unread-count/')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('chatNotificationBadge');
+                    if (badge) {
+                        badge.innerText = data.count;
+                        if (data.count > 0) {
+                            badge.style.display = 'inline-block'; // or flex/block depending on CSS
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => console.error('Error fetching unread count:', error));
+        }
+
+        // Run immediately and then interval
+        // updateUnreadCount(); // Optional: if we trust server rendering initially, we can skip immediate call
+        setInterval(updateUnreadCount, 5000); // 5 seconds interval
+
+        // Auto-dismiss alerts after 3 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.toast-message');
+            messages.forEach(function(msg) {
+                msg.style.transition = 'opacity 0.5s ease';
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 3000);
+    });
+</script>
+
+</html>

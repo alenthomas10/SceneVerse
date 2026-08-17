@@ -1,0 +1,151 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}My Projects - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Styling the textarea to match the Feed code */
+    textarea[name="comment"] {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 12px !important;
+        padding: 10px 18px !important;
+        min-height: 60px;
+        transition: all 0.2s ease;
+    }
+
+    textarea[name="comment"]:focus {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-color: var(--primary-color) !important;
+        outline: none !important;
+    }
+
+    .comments-list-container {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+
+    .comment-box {
+        background: rgba(0, 0, 0, 0.3) !important;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 10px;
+        color: #fff !important;
+    }
+
+    .post-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: var(--text-color);
+    }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+
+    .post-header img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .post-title {
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>My Projects ✨</h1>
+            <p class="text-muted">Manage all your creative projects in one place.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProjectModal">
+                <i class="bi-plus-circle me-2"></i>New Project
+            </button>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Filter Column -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="card mb-4">
+                <div class="card-header bg-transparent border-bottom border-secondary">
+                    <h5 class="mb-0 fw-bold">Filter Projects</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="/my_projects/">
+                        <div class="mb-3">
+                            <label class="form-label">Project Type</label>
+                            <select class="form-select form-select-sm" name="project_type">
+                                {% for f in type_filters %}
+                                <option value="{{ f.value }}" {% if f.selected %}selected{% endif %}>{{ f.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select form-select-sm" name="project_status">
+                                {% for f in status_filters %}
+                                <option value="{{ f.value }}" {% if f.selected %}selected{% endif %}>{{ f.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                            {% if is_filtered %}
+                            <a href="/my_projects/" class="btn btn-outline-secondary btn-sm text-decoration-none">Clear
+                                Filters</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="col-lg-9">
+            {% for i in proj %}
+            <div class="post-card">
+                <div class="post-header">
+                    <img src="{% static 'images/avatars/director-avatar.jpg' %}" alt="Creator"
+                        onerror="this.src='https://ui-avatars.com/api/?name=Creator'">
+                    <div>
+                        <div class="fw-bold">{{ i.added_by.first_name|default:'Creator' }} {{ i.added_by.last_name }}
+                        </div>
+                        <small class="text-muted">{{ i.created_at|date:"M d, Y" }}</small>
+                    </div>
+                </div>
+
+                <h4 class="post-title">{{ i.project_title|capfirst }}</h4>
+                <p>{{ i.project_description|default:"No description provided." }}</p>
+
+                <div class="d-flex gap-2 mb-3">
+                    <span class="badge bg-primary">{{ i.project_type|capfirst }}</span>
+                    <span class="badge bg-dark border border-secondary">{{ i.genre|capfirst }}</span>
+                    <span class="badge bg-success">{{ i.project_status }}</span>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top border-secondary">
+                    <div class="d-flex gap-3">
+                        <form method="POST" action="/projectlike/" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="project_id" value="{{ i.id }}">
+                            <button type="submit"
+                                class="btn btn-link p-0 text-white text-decoration-none {% if i.id in likes %}like-active{% endif %}">
+                                <i class="bi-heart{% if i.id not in likes %}-fill{% endif %}"></i> Like

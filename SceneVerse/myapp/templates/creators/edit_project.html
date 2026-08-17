@@ -1,0 +1,514 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Edit Project - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="form-container">
+        <h2 class="mb-4">Edit Project 🎬</h2>
+
+        <form method="POST" enctype="multipart/form-data" id="editProjectForm"
+            action="/creators/projects/{{ project.id }}/">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Project Title</label>
+                <input type="text" class="form-control" name="project_title" value="{{ project.project_title }}"
+                    required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="project_type">
+                    <option value="feature-film" {% if 'feature' in project.project_type|lower %}selected{% endif %}>
+                        Feature Film</option>
+                    <option value="short-film" {% if 'short' in project.project_type|lower %}selected{% endif %}>Short
+                        Film</option>
+                    <option value="documentary" {% if 'doc' in project.project_type|lower %}selected{% endif %}>
+                        Documentary</option>
+                    <option value="series" {% if 'series' in project.project_type|lower or 'web' in project.project_type|lower %}selected{% endif %}>Web Series
+                    </option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Project Description</label>
+                <textarea class="form-control" rows="4"
+                    name="project_description">{{ project.project_description }}</textarea>
+            </div>
+
+            <!-- Media Upload Section -->
+            <div class="mb-3">
+                <label class="form-label">Project Media (Update)</label>
+
+                <!-- Hidden Input -->
+                <input type="file" id="mediaInput" name="media" accept="image/*,video/*" class="d-none">
+
+                <div class="upload-area mb-3" onclick="document.getElementById('mediaInput').click()"
+                    style="border: 2px dashed var(--border-color); padding: 20px; text-align: center; cursor: pointer; border-radius: 10px;">
+                    <div class="d-flex flex-column align-items-center text-muted">
+                        <i class="bi bi-cloud-upload fs-2 mb-2"></i>
+                        <span>Change Photo or Video</span>
+                    </div>
+                </div>
+
+                <div id="previewGrid" class="media-preview-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px;">
+                    <!-- Existing Media Preview -->
+                    {% if project.image %}
+                    <div class="media-preview-item position-relative"
+                        style="aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <img src="{{ project.image.url }}" style="width: 100%; height: 100%; object-fit: cover;">
+                        <span class="badge bg-secondary position-absolute top-0 start-0 m-1">Current</span>
+                    </div>
+                    {% elif project.video %}
+                    <div class="media-preview-item position-relative"
+                        style="aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--border-color);">
+                        <video src="{{ project.video.url }}"
+                            style="width: 100%; height: 100%; object-fit: cover;"></video>
+                        <span class="badge bg-secondary position-absolute top-0 start-0 m-1">Current</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Genre</label>
+                    <input type="text" class="form-control" name="genre" value="{{ project.genre }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="project_status">
+                        <option value="Pre-Production" {% if project.project_status == 'Pre-Production' %}selected{% endif %}>Pre-Production</option>
+                        <option value="Production" {% if project.project_status == 'Production' or project.project_status == 'In Production' %}selected{% endif %}>Production</option>
+                        <option value="Post-Production" {% if project.project_status == 'Post-Production' %}selected{% endif %}>Post-Production</option>
+                        <option value="Casting" {% if project.project_status == 'Casting' %}selected{% endif %}>Casting</option>
+                        <option value="Released" {% if project.project_status == 'Released' or project.project_status == 'Completed' %}selected{% endif %}>Released</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="/my_projects/" class="btn btn-secondary">Cancel</a>
+                <div>
+                     <button type="button" class="btn btn-danger me-2" data-bs-toggle="modal"
+                        data-bs-target="#deleteModal">Delete Project</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Project?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ project.project_title }}</strong>?</p>
+                <p class="text-danger small">This action cannot be undone and will delete all associated casting calls.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/creators/delete_project/{{ project.id }}/" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Editor Modal -->
+<div class="modal fade" id="imageEditorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Image</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-dark text-center" style="height: 500px;">
+                <img id="editorImage" src="" style="max-width: 100%; max-height: 100%;">
+            </div>
+            <div class="modal-footer border-secondary justify-content-between">
+                <div>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperRotate(-90)"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperRotate(90)"><i class="bi bi-arrow-clockwise"></i></button>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperReset()"><i class="bi bi-arrow-repeat"></i> Reset</button>
+                </div>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Editor Modal -->
+<div class="modal fade" id="videoEditorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Video</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3 bg-dark text-center">
+                <video id="editorVideo" controls class="w-100 rounded" style="max-height: 400px;"></video>
+
+                <div class="mt-3 px-3">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Start: <span id="lblStart">0.0</span>s</span>
+                        <span>End: <span id="lblEnd">--</span>s</span>
+                    </div>
+                    <div class="progress bg-secondary" style="height: 6px;">
+                        <div id="trimProgress" class="progress-bar bg-primary" style="width: 0%; margin-left: 0%;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setTrimStart()">Set Start
+                        Current</button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="previewLoop()">Preview
+                        Loop</button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setTrimEnd()">Set End
+                        Current</button>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearTrim()">Clear
+                        Trim</button>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-primary w-100" id="saveVideoEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- Media Upload Handling ---
+        const mediaInput = document.getElementById('mediaInput');
+        const previewGrid = document.getElementById('previewGrid');
+        const projectForm = document.getElementById('editProjectForm');
+        
+        // --- Project Form Validation ---
+        if (projectForm) {
+            projectForm.addEventListener('submit', function (e) {
+                const title = projectForm.querySelector('input[name="project_title"]');
+                const genre = projectForm.querySelector('input[name="genre"]');
+                
+                if (title && !title.value.trim()) {
+                    e.preventDefault();
+                    alert('Project Title cannot be empty.'); // Fallback to alert if no custom error shown
+                    title.focus();
+                    return;
+                }
+                
+                if (genre && !genre.value.trim()) {
+                    e.preventDefault();
+                    alert('Genre cannot be empty.');
+                    genre.focus();
+                    return;
+                }
+            });
+        }
+
+        // --- Image Editor Variables ---
+        let cropper;
+        let imageEditorModal;
+        const editorImage = document.getElementById('editorImage');
+        let currentEditingFile = null;
+        let selectedFile = null; // Store the single file
+
+        // --- Video Editor Variables ---
+        let trimData = {}; // Store trim data keyed by filename, though we only handle one file
+        let currentVideoStart = 0;
+        let currentVideoEnd = null;
+        let videoEditorModal;
+        const editorVideo = document.getElementById('editorVideo');
+
+
+        // Initialize Modals
+        if (document.getElementById('imageEditorModal')) {
+            imageEditorModal = new bootstrap.Modal(document.getElementById('imageEditorModal'));
+        }
+        if (document.getElementById('videoEditorModal')) {
+            videoEditorModal = new bootstrap.Modal(document.getElementById('videoEditorModal'));
+        }
+
+        // Handle File Selection
+        if (mediaInput) {
+            mediaInput.addEventListener('change', function (e) {
+                if (e.target.files && e.target.files.length > 0) {
+                    selectedFile = e.target.files[0]; // Only one file for project
+                    renderPreview();
+                }
+            });
+        }
+
+        function renderPreview() {
+            // Keep existing "Current" badge item if we haven't selected anything new? 
+            // Actually, if they select new, we should probably clear existing preview or replace it.
+            // Let's clear everything for simplicity and show new selection.
+            previewGrid.innerHTML = '';
+
+            if (!selectedFile) return;
+
+            const file = selectedFile;
+            const isImage = file.type.startsWith('image/');
+            const isVideo = file.type.startsWith('video/');
+            const url = URL.createObjectURL(file);
+
+            const div = document.createElement('div');
+            div.className = 'media-preview-item position-relative';
+            div.style.aspectRatio = '1';
+            div.style.borderRadius = '8px';
+            div.style.overflow = 'hidden';
+            div.style.border = '1px solid var(--border-color)';
+            div.style.background = '#000';
+
+            if (isImage) {
+                div.innerHTML = `<img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } else if (isVideo) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.style.width = '100%';
+                video.style.height = '100%';
+                video.style.objectFit = 'cover';
+                video.preload = 'metadata';
+                video.onloadeddata = function () { this.currentTime = 0.5; };
+                div.appendChild(video);
+            }
+
+            // Actions
+            const actions = document.createElement('div');
+            actions.style.position = 'absolute';
+            actions.style.top = '2px';
+            actions.style.right = '2px';
+            actions.style.display = 'flex';
+            actions.style.gap = '4px';
+
+            const editBtn = document.createElement('button');
+            editBtn.style.width = '24px';
+            editBtn.style.height = '24px';
+            editBtn.style.borderRadius = '50%';
+            editBtn.style.background = 'rgba(0, 0, 0, 0.7)';
+            editBtn.style.color = 'white';
+            editBtn.style.border = 'none';
+            editBtn.style.display = 'flex';
+            editBtn.style.alignItems = 'center';
+            editBtn.style.justifyContent = 'center';
+            editBtn.style.fontSize = '12px';
+            editBtn.style.cursor = 'pointer';
+
+            editBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+            editBtn.type = 'button';
+
+            if (isImage) {
+                editBtn.onclick = () => openImageEditor(file);
+            } else {
+                editBtn.onclick = () => openVideoEditor(file);
+            }
+            actions.appendChild(editBtn);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.style.width = '24px';
+            removeBtn.style.height = '24px';
+            removeBtn.style.borderRadius = '50%';
+            removeBtn.style.background = 'rgba(220, 53, 69, 0.9)'; // Red
+            removeBtn.style.color = 'white';
+            removeBtn.style.border = 'none';
+            removeBtn.style.display = 'flex';
+            removeBtn.style.alignItems = 'center';
+            removeBtn.style.justifyContent = 'center';
+            removeBtn.style.fontSize = '12px';
+            removeBtn.style.cursor = 'pointer';
+
+            removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+            removeBtn.type = 'button';
+            removeBtn.onclick = () => {
+                selectedFile = null;
+                mediaInput.value = '';
+                // Reload page to show original? Or just clear.
+                // If we clear, user might think they deleted the original. 
+                // Let's just clear preview.
+                previewGrid.innerHTML = '';
+                trimData = {};
+            };
+            actions.appendChild(removeBtn);
+
+            div.appendChild(actions);
+            previewGrid.appendChild(div);
+        }
+
+        // --- Image Editor Logic ---
+        function openImageEditor(file) {
+            currentEditingFile = file;
+            const url = URL.createObjectURL(file);
+            editorImage.src = url;
+
+            // Wait for image to load before destroying old cropper and creating new
+            editorImage.onload = () => {
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(editorImage, {
+                    aspectRatio: 16 / 9, // Default to 16:9 for projects
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+                imageEditorModal.show();
+            };
+        }
+
+        window.cropperRotate = (deg) => {
+            if (cropper) cropper.rotate(deg);
+        };
+        window.cropperReset = () => {
+            if (cropper) cropper.reset();
+        };
+
+        document.getElementById('saveEditBtn').addEventListener('click', function () {
+            if (!cropper) return;
+
+            cropper.getCroppedCanvas().toBlob((blob) => {
+                // Create a new File object
+                const newFile = new File([blob], selectedFile.name, { type: 'image/jpeg' });
+                selectedFile = newFile;
+
+                // Update the input files
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                mediaInput.files = dataTransfer.files;
+
+                renderPreview();
+                imageEditorModal.hide();
+            }, 'image/jpeg');
+        });
+
+        // --- Video Editor Logic ---
+        // Add hidden input for trim data
+        if (projectForm && !projectForm.querySelector('input[name="trim_data"]')) {
+            const trimInput = document.createElement('input');
+            trimInput.type = 'hidden';
+            trimInput.name = 'trim_data';
+            projectForm.appendChild(trimInput);
+
+            projectForm.addEventListener('submit', function () {
+                trimInput.value = JSON.stringify(trimData);
+            });
+        }
+
+        function openVideoEditor(file) {
+            const url = URL.createObjectURL(file);
+            editorVideo.src = url;
+
+            // Load existing trim
+            const meta = trimData[file.name] || {};
+            currentVideoStart = meta.start || 0;
+            currentVideoEnd = meta.end || null;
+
+            editorVideo.currentTime = currentVideoStart;
+            updateTrimUI();
+
+            videoEditorModal.show();
+        }
+
+        window.updateTrimUI = function () { // Expose globally for onloadedmetadata
+            document.getElementById('lblStart').innerText = currentVideoStart.toFixed(1);
+            const dur = editorVideo.duration;
+            document.getElementById('lblEnd').innerText = currentVideoEnd ? currentVideoEnd.toFixed(1) : (dur ? dur.toFixed(1) : '--');
+
+            if (dur) {
+                const startPct = (currentVideoStart / dur) * 100;
+                const endPct = currentVideoEnd ? (currentVideoEnd / dur) * 100 : 100;
+                const width = endPct - startPct;
+                const progressBar = document.getElementById('trimProgress');
+                progressBar.style.marginLeft = startPct + '%';
+                progressBar.style.width = width + '%';
+            }
+        };
+
+        editorVideo.onloadedmetadata = function () {
+            updateTrimUI();
+        };
+
+        window.setTrimStart = function () {
+            currentVideoStart = editorVideo.currentTime;
+            if (currentVideoEnd !== null && currentVideoStart >= currentVideoEnd) {
+                currentVideoEnd = null;
+            }
+            updateTrimUI();
+        };
+
+        window.setTrimEnd = function () {
+            currentVideoEnd = editorVideo.currentTime;
+            if (currentVideoEnd <= currentVideoStart) {
+                alert("End time must be after start time");
+                currentVideoEnd = null;
+            }
+            updateTrimUI();
+        };
+
+        window.clearTrim = function () {
+            currentVideoStart = 0;
+            currentVideoEnd = null;
+            updateTrimUI();
+        };
+
+        window.previewLoop = function () {
+            editorVideo.currentTime = currentVideoStart;
+            editorVideo.play();
+
+            const checkStop = setInterval(() => {
+                if (editorVideo.paused) {
+                    clearInterval(checkStop);
+                    return;
+                }
+                const end = currentVideoEnd || editorVideo.duration;
+                if (editorVideo.currentTime >= end) {
+                    editorVideo.pause();
+                    editorVideo.currentTime = currentVideoStart;
+                    clearInterval(checkStop);
+                }
+            }, 100);
+        };
+
+        document.getElementById('saveVideoEditBtn').addEventListener('click', function () {
+            trimData[selectedFile.name] = {
+                start: currentVideoStart,
+                end: currentVideoEnd
+            };
+            videoEditorModal.hide();
+        });
+    });
+</script>
+{% endblock %}

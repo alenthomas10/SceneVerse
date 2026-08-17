@@ -1,0 +1,154 @@
+<nav class="sidebar" id="sidebar">
+    <a href="/" class="sidebar-brand">
+        <i class="bi bi-film"></i> SceneVerse
+    </a>
+
+    <ul class="nav flex-column mb-auto">
+        <!-- Creator Menu -->
+        {% if request.session.role == 'creator' %}
+        <li class="nav-item">
+            <a href="/creators/" class="nav-link {% if request.path == '/creators/' %}active{% endif %}">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/my_projects/" class="nav-link {% if request.path == '/my_projects/' %}active{% endif %}">
+                <i class="bi bi-folder"></i> My Projects
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/my_castingcalls/" class="nav-link {% if request.path == '/my_castingcalls/' %}active{% endif %}">
+                <i class="bi bi-megaphone"></i> Casting Calls
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/findartists/" class="nav-link {% if request.path == '/findartists/' %}active{% endif %}">
+                <i class="bi bi-search"></i> Find Artists
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/applications/" class="nav-link {% if request.path == '/applications/' %}active{% endif %}">
+                <i class="bi bi-person-lines-fill"></i> Applications
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/creator_profile/" class="nav-link {% if request.path == '/creator_profile/' %}active{% endif %}">
+                <i class="bi bi-person-circle"></i> My Profile
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/chat/" class="nav-link {% if request.path == '/chat/' %}active{% endif %}">
+                <i class="bi bi-chat-dots-fill"></i> Messages
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- Artist Menu -->
+        {% if request.session.role == 'artist' or request.session.role == 'talent' %}
+        <li class="nav-item">
+            <a href="/artists/" class="nav-link {% if request.path == '/artists/' %}active{% endif %}">
+                <i class="bi bi-house"></i> Feed
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/artprofile/" class="nav-link {% if request.path == '/artprofile/' %}active{% endif %}">
+                <i class="bi bi-person"></i> My Profile
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/findprojects/" class="nav-link {% if request.path == '/findprojects/' %}active{% endif %}">
+                <i class="bi bi-search"></i> Find Projects
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/castingcalls/" class="nav-link {% if request.path == '/castingcalls/' %}active{% endif %}">
+                <i class="bi bi-megaphone"></i> Casting Calls
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/myapplications/" class="nav-link {% if request.path == '/myapplications/' %}active{% endif %}">
+                <i class="bi bi-send"></i> My Applications
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a href="/chat/" class="nav-link {% if request.path == '/chat/' %}active{% endif %}">
+                <i class="bi bi-chat-dots-fill"></i> Messages
+            </a>
+        </li>
+        {% endif %}
+
+        <!-- Admin Menu -->
+        {% if request.session.admin %} <!-- Check session admin instead of superuser -->
+        <li class="nav-item">
+            <a href="/admin_users/" class="nav-link {% if request.path == '/admin_users/' %}active{% endif %}">
+                <i class="bi bi-people"></i> Users Management
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/manageprojects/" class="nav-link {% if request.path == '/manageprojects/' %}active{% endif %}">
+                <i class="bi bi-folder"></i> Projects
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/manage_admin/manage_casting/"
+                class="nav-link {% if request.path == '/manage_admin/manage_casting/' %}active{% endif %}">
+                <i class="bi bi-megaphone"></i> Casting Calls
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/manage_admin/manage_posts/"
+                class="nav-link {% if request.path == '/manage_admin/manage_posts/' %}active{% endif %}">
+                <i class="bi bi-file-post"></i> Artist Posts
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/manage_admin/manage_comments/"
+                class="nav-link {% if request.path == '/manage_admin/manage_comments/' %}active{% endif %}">
+                <i class="bi bi-chat-dots"></i> Comments
+            </a>
+        </li>
+
+        {% endif %}
+
+        <!-- Fallback if no role (e.g. testing) -->
+        {% if not request.session.role and not request.session.admin %}
+        <li class="nav-item">
+            <a href="/chat/" class="nav-link {% if request.path == '/chat/' %}active{% endif %}">
+                <i class="bi bi-chat-dots-fill"></i> Messages
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+
+    <div class="border-top border-secondary pt-3">
+        <div class="d-flex align-items-center mb-3">
+            <div class="bg-dark text-white rounded-circle d-flex align-items-center justify-content-center me-2 border border-secondary"
+                style="width: 40px; height: 40px; overflow: hidden;">
+                {% if sidebar_avatar %}
+                <img src="{{ sidebar_avatar }}" alt="Profile" class="rounded-circle"
+                    style="width: 100%; height: 100%; object-fit: cover;">
+                {% else %}
+                <i class="bi bi-person"></i>
+                {% endif %}
+            </div>
+            <div>
+                <div class="fw-bold">{{ sidebar_name }}</div>
+                <small class="text-success">Online</small>
+            </div>
+        </div>
+        {% if request.session.role == 'creator' %}
+        <a href="/settings/" class="btn btn-outline-secondary w-100 mb-2">
+            <i class="bi bi-gear"></i> Settings
+        </a>
+        {% elif request.session.role == 'artist' %}
+        <a href="/settings/" class="btn btn-outline-secondary w-100 mb-2">
+            <i class="bi bi-gear"></i> Settings
+        </a>
+
+        {% endif %}
+        <button class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#logoutModal">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </button>
+    </div>
+</nav>

@@ -1,0 +1,182 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Dashboard - SceneVerse Admin{% endblock %}
+{% block back_button %}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'admin/css/admin.css' %}" rel="stylesheet">
+<link href="{% static 'admin/css/admindash.css' %}" rel="stylesheet">
+<style>
+    /* Override or adjust admin styles to fit base_modern */
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header -->
+<header class="content-header">
+    <div class="d-flex align-items-center w-100">
+        <button class="btn sidebar-toggle d-lg-none me-3 p-0 text-white border-0 bg-transparent">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+
+        <div class="header-title">
+            <h1 class="h3 mb-1">Dashboard</h1>
+            <p class="text-muted mb-0">Overview of platform statistics and activity</p>
+        </div>
+
+        <div class="ms-auto">
+            <button class="btn btn-outline-primary" onclick="refreshStats()">
+                <i class="bi bi-arrow-clockwise me-2"></i>Refresh
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Dashboard Content -->
+<div class="content-area px-4 pb-5">
+    <section class="stats-section mb-5">
+        <div class="row">
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                        <div class="stat-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mb-2"
+                            style="width: 40px; height: 40px;">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3 class="h4 mb-1">{{ stats.total_users }}</h3>
+                        <p class="text-muted small mb-0">Total Users</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                        <div class="stat-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center mb-2"
+                            style="width: 40px; height: 40px;">
+                            <i class="bi bi-folder"></i>
+                        </div>
+                        <h3 class="h4 mb-1">{{ stats.total_projects }}</h3>
+                        <p class="text-muted small mb-0">Projects</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                        <div class="stat-icon bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center mb-2"
+                            style="width: 40px; height: 40px;">
+                            <i class="bi bi-megaphone"></i>
+                        </div>
+                        <h3 class="h4 mb-1">{{ stats.total_casting }}</h3>
+                        <p class="text-muted small mb-0">Casting Calls</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                        <div class="stat-icon bg-info text-white rounded-circle d-flex align-items-center justify-content-center mb-2"
+                            style="width: 40px; height: 40px;">
+                            <i class="bi bi-file-post"></i>
+                        </div>
+                        <h3 class="h4 mb-1">{{ stats.total_posts }}</h3>
+                        <p class="text-muted small mb-0">Artist Posts</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                        <div class="stat-icon bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mb-2"
+                            style="width: 40px; height: 40px;">
+                            <i class="bi bi-chat-dots"></i>
+                        </div>
+                        <h3 class="h4 mb-1">{{ stats.total_comments }}</h3>
+                        <p class="text-muted small mb-0">Total Comments</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-2 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100">
+                    <div class="card-body d-flex flex-column align-items-center text-center p-3">
+                        <div class="stat-icon bg-danger text-white rounded-circle d-flex align-items-center justify-content-center mb-2"
+                            style="width: 40px; height: 40px;">
+                            <i class="bi bi-person-lines-fill"></i>
+                        </div>
+                        <h3 class="h4 mb-1">{{ stats.total_apps }}</h3>
+                        <p class="text-muted small mb-0">Applications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- Recent Activity Section -->
+    <section class="table-section">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header border-secondary bg-transparent py-3">
+                <h4 class="h5 mb-0">Recent Activity</h4>
+            </div>
+            <div class="card-body">
+                <div class="activity-list">
+                    <div class="activity-item d-flex mb-3 pb-3 border-bottom border-secondary">
+                        <div class="activity-icon bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style="width: 40px; height: 40px; flex-shrink:0;">
+                            <i class="bi bi-person-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6 class="mb-1">New user registration</h6>
+                            <p class="text-muted small mb-1">John Doe registered as an artist</p>
+                            <span class="text-secondary small">2 minutes ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item d-flex mb-3 pb-3 border-bottom border-secondary">
+                        <div class="activity-icon bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style="width: 40px; height: 40px; flex-shrink:0;">
+                            <i class="bi bi-folder-plus"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6 class="mb-1">New project created</h6>
+                            <p class="text-muted small mb-1">"Summer Film Production" project created by Jane Smith</p>
+                            <span class="text-secondary small">15 minutes ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item d-flex mb-3 pb-3 border-bottom border-secondary">
+                        <div class="activity-icon bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style="width: 40px; height: 40px; flex-shrink:0;">
+                            <i class="bi bi-megaphone"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6 class="mb-1">New casting call</h6>
+                            <p class="text-muted small mb-1">Casting call for "The Last Stand" published</p>
+                            <span class="text-secondary small">1 hour ago</span>
+                        </div>
+                    </div>
+                    <div class="activity-item d-flex">
+                        <div class="activity-icon bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style="width: 40px; height: 40px; flex-shrink:0;">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6 class="mb-1">Role change</h6>
+                            <p class="text-muted small mb-1">User Michael Brown upgraded to creator role</p>
+                            <span class="text-secondary small">3 hours ago</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

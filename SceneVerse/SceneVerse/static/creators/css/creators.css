@@ -1,0 +1,1166 @@
+/* Creators Dashboard Styles with Sidebar Layout */
+:root {
+    --primary-color: #8b6b4c;
+    --secondary-color: #6d4c3d;
+    --dark-color: #1a1a1a;
+    --light-color: #f8f9fa;
+    --text-color: #333;
+    --white: #ffffff;
+    --black: #000000;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --border-color: rgba(255, 255, 255, 0.1);
+    --sidebar-width: 280px;
+    --sidebar-collapsed: 80px;
+
+    /* Core Colors for the #8b6b4c Theme */
+    --brown-dark-bg: #3c3228; /* Very dark background for cards/modals */
+    --brown-medium: #544439; /* Medium brown for field borders */
+    --brown-accent: #8b6b4c; /* The requested main accent color (Tan/Khaki Brown) */
+    --brown-light-text: #f0e0d0; /* Off-white for text/highlights */
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--dark-color);
+    color: var(--white);
+    overflow-x: hidden;
+}
+
+/* Dashboard Layout */
+.dashboard-layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* Sidebar Styles */
+.sidebar {
+    width: var(--sidebar-width);
+    background: linear-gradient(180deg, #111 0%, var(--dark-color) 100%);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.sidebar-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.navbar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--white);
+    text-decoration: none;
+}
+
+.brand-icon {
+    font-size: 1.8rem;
+    margin-right: 10px;
+}
+
+.sidebar-content {
+    flex: 1;
+    padding: 20px 0;
+    overflow-y: auto;
+}
+
+/* User Profile */
+.user-profile {
+    padding: 0 25px 20px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--primary-color);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-info h6 {
+    margin: 0;
+    color: var(--white);
+    font-weight: 600;
+}
+
+.user-info span {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+}
+
+/* Sidebar Menu */
+.sidebar-menu {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.menu-item {
+    margin: 5px 15px;
+}
+
+.menu-item a {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.menu-item a:hover {
+    background: rgba(139, 107, 76, 0.1);
+    color: var(--white);
+}
+
+.menu-item.active a {
+    background: rgba(139, 107, 76, 0.2);
+    color: var(--primary-color);
+    border-left: 3px solid var(--primary-color);
+}
+
+.menu-item i {
+    font-size: 1.2rem;
+    margin-right: 12px;
+    width: 20px;
+    text-align: center;
+}
+
+.menu-item .badge {
+    margin-left: auto;
+    background: var(--primary-color);
+    color: var(--white);
+    font-size: 0.7rem;
+    padding: 4px 8px;
+}
+
+/* Sidebar Actions */
+.sidebar-actions {
+    padding: 20px 25px 0;
+    border-top: 1px solid var(--border-color);
+    margin-top: 20px;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+    padding: 20px 25px;
+    border-top: 1px solid var(--border-color);
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.sidebar-link:hover {
+    color: var(--white);
+}
+
+.sidebar-link.text-danger:hover {
+    color: #dc3545;
+}
+
+.sidebar-link i {
+    margin-right: 10px;
+    width: 20px;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    margin-left: var(--sidebar-width);
+    background: var(--dark-color);
+    min-height: 100vh;
+}
+
+/* Content Header */
+.content-header {
+    padding: 20px 30px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(26, 26, 26, 0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sidebar-toggle {
+    color: var(--white);
+    font-size: 1.2rem;
+}
+
+.search-box {
+    position: relative;
+    flex: 1;
+    max-width: 400px;
+    margin: 0 20px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 10px 15px 10px 45px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 25px;
+    color: var(--white);
+    transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.header-notifications {
+    position: relative;
+}
+
+.notification-btn {
+    color: var(--white);
+    font-size: 1.2rem;
+    position: relative;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #dc3545;
+    color: white;
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 0.7rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Content Area */
+.content-area {
+    padding: 30px;
+}
+
+/* Welcome Section */
+.welcome-section {
+    margin-bottom: 30px;
+}
+
+.welcome-section h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+/* Stats Section */
+.stats-section {
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 25px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-icon.bg-primary { background: var(--primary-color); }
+.stat-icon.bg-success { background: #198754; }
+.stat-icon.bg-warning { background: #ffc107; }
+.stat-icon.bg-info { background: #0dcaf0; }
+
+.stat-info h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--white);
+}
+
+.stat-info p {
+    margin: 5px 0 0;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Project Type Selector */
+.project-type-selector {
+    margin-top: 10px;
+}
+
+.type-options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.type-option {
+    display: none;
+}
+
+.type-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+
+    /* Overridden by the custom theme below */
+}
+
+.type-label:hover {
+    background: rgba(139, 107, 76, 0.1);
+    border-color: var(--primary-color);
+}
+
+.type-option:checked + .type-label {
+    background: rgba(139, 107, 76, 0.2);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+.type-label i {
+    font-size: 1.5rem;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+}
+
+.type-label span {
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* Project Badges */
+.project-badge {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: white;
+    margin-right: 15px;
+}
+
+.project-badge.feature-film { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.project-badge.short-film { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.project-badge.web-series { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.project-badge.documentary { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+.project-badge.commercial { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.project-badge.music-video { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+
+/* Online Status */
+.online-status {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: #198754;
+    border: 2px solid var(--dark-color);
+    border-radius: 50%;
+}
+
+/* Artist Rating */
+.artist-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #ffc107;
+    font-size: 0.8rem;
+}
+
+/* Deadline Items */
+.deadline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.deadline-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+}
+
+.deadline-item:hover {
+    border-color: var(--primary-color);
+}
+
+.deadline-date {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+}
+
+.deadline-date.urgent {
+    background: #dc3545;
+}
+
+.deadline-date .day {
+    font-size: 1.2rem;
+    line-height: 1;
+}
+
+.deadline-date .month {
+    font-size: 0.7rem;
+    opacity: 0.9;
+}
+
+.deadline-info h6 {
+    margin: 0;
+    color: var(--white);
+    font-weight: 600;
+}
+
+.deadline-info p {
+    margin: 2px 0 0;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+}
+
+/* Buttons */
+.custom-btn {
+    background-color: var(--primary-color);
+    color: var(--white);
+    border: none;
+    padding: 10px 25px;
+    border-radius: 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    /* Overridden by the custom theme below */
+}
+
+.custom-btn:hover {
+    background-color: var(--secondary-color);
+    color: var(--white);
+    transform: translateY(-2px);
+}
+
+.custom-border-btn {
+    background-color: transparent;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+}
+
+.custom-border-btn:hover {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn-sm {
+    padding: 6px 15px;
+    font-size: 0.875rem;
+}
+
+/* Content Cards */
+.content-card {
+    background: var(--card-bg);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h4 {
+    margin: 0;
+    color: var(--white);
+    font-weight: 600;
+}
+
+.view-all {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+}
+
+.view-all:hover {
+    color: var(--secondary-color);
+}
+
+.card-body {
+    padding: 25px;
+}
+
+/* Project List (OLD STYLES - Kept for list structure) */
+.project-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.project-item {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.project-item:hover {
+    border-color: var(--primary-color);
+    transform: translateX(5px);
+}
+
+.project-info {
+    flex: 1;
+}
+
+.project-info h5 {
+    color: var(--white);
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.project-meta {
+    color: var(--primary-color);
+    font-weight: 500;
+    margin-bottom: 10px;
+}
+
+.project-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.stat {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.875rem;
+}
+
+.stat i {
+    margin-right: 5px;
+}
+/* End OLD Project List Styles */
+
+
+/* Application List */
+.application-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.application-item {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.application-item:hover {
+    border-color: var(--primary-color);
+}
+
+.application-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+    position: relative;
+}
+
+.application-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.application-details {
+    flex: 1;
+}
+
+.application-details h6 {
+    color: var(--white);
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.application-role,
+.application-project {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 2px 0;
+    font-size: 0.875rem;
+}
+
+.application-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Artist List */
+.artist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.artist-item {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.artist-item:hover {
+    border-color: var(--primary-color);
+}
+
+.artist-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 12px;
+    position: relative;
+}
+
+.artist-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.artist-info {
+    flex: 1;
+}
+
+.artist-info h6 {
+    color: var(--white);
+    margin-bottom: 2px;
+    font-weight: 600;
+}
+
+.artist-skill {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+/* Status Badges */
+.badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-pending {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.status-reviewed {
+    background-color: rgba(13, 110, 253, 0.2);
+    color: #0d6efd;
+}
+
+.status-accepted {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #198754;
+}
+
+/* Modals */
+.modal-content {
+    background-color: var(--dark-color);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    /* Overridden by final modal-content block */
+}
+
+.modal-header {
+    border-bottom: 1px solid var(--border-color);
+    padding: 20px 25px;
+}
+
+.modal-title {
+    color: var(--white);
+    font-weight: 600;
+}
+
+.btn-close {
+    filter: invert(1);
+}
+
+.modal-body {
+    padding: 25px;
+}
+
+.modal-footer {
+    border-top: 1px solid var(--border-color);
+    padding: 20px 25px;
+}
+
+/* Form Controls - Base Styles (Overridden by Theme Styling below) */
+.form-control {
+    background-color: black;
+    border: 1px solid var(--border-color);
+    color: var(--white);
+    border-radius: 8px;
+    padding: 12px 15px;
+}
+
+.form-control:focus {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+    color: var(--white);
+    box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.25);
+}
+
+.form-control::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-label {
+    color: var(--white);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.mobile-open {
+        transform: translateX(0);
+    }
+
+    .main-content {
+        margin-left: 0;
+    }
+
+    .type-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .content-area {
+        padding: 20px 15px;
+    }
+
+    .stat-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .project-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .application-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .application-actions {
+        align-self: stretch;
+        justify-content: space-between;
+    }
+
+    .artist-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .card-header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+    }
+
+    .header-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .search-box {
+        max-width: 100%;
+        margin: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card {
+        padding: 20px 15px;
+    }
+
+    .stat-info h3 {
+        font-size: 1.5rem;
+    }
+
+    .project-stats {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .welcome-section h1 {
+        font-size: 1.8rem;
+    }
+}
+
+/* --- Core Colors for the #8b6b4c Theme --- */
+/* (Defined in :root at the top) */
+
+/* --- Theme Styling for Form Controls --- */
+
+/* Target the basic input/select/textarea controls */
+.form-control,
+.form-select {
+    /* Dark background for input fields */
+    background-color: var(--brown-dark-bg) !important;
+    /* Medium brown border */
+    border: 1px solid var(--brown-medium) !important;
+    /* Light text color */
+    color: var(--brown-light-text) !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0.5rem !important;
+    transition: all 0.3s ease;
+    box-shadow: none !important;
+}
+
+/* Focus state (when the user clicks into the field) */
+.form-control:focus,
+.form-select:focus {
+    /* Slightly lighter background on focus */
+    background-color: #4b3e34 !important;
+    /* The requested accent color for the border */
+    border-color: var(--brown-accent) !important;
+    /* Soft glow using the accent color */
+    box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.4) !important;
+    color: var(--brown-light-text) !important;
+}
+
+/* --- Specific styling for Select dropdowns (.form-select) --- */
+
+.form-select {
+    /* Remove default appearance */
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+
+    /* Custom background image for the dropdown arrow (light text color) */
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f0e0d0' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 1rem center !important;
+    background-size: 16px 12px !important;
+}
+
+/* Use your dark background color for the options list itself (already implemented, but ensure it's here) */
+.modal-body select option,
+.modal-body select optgroup {
+    background-color: var(--brown-dark-bg) !important;
+    color: var(--brown-light-text) !important;
+}
+
+/* --- MOST IMPORTANT: Force the background color of the *selected* or *active* option --- */
+/* Note: This works well in WebKit (Chrome, Edge) but often fails on Firefox/Safari due to native OS rendering. */
+.modal-body select option:checked {
+    /* Set the background of the selected option to your accent color, replacing the default blue */
+    background-color: var(--brown-accent) !important;
+    /* Ensure text remains visible */
+    color: var(--brown-dark-bg) !important;
+    /* This rule often controls the hover state in non-native dropdown renderings */
+}
+
+/* Fallback for older/less cooperative browsers (less reliable) */
+.modal-body select option:hover {
+    background-color: var(--brown-accent) !important;
+    color: var(--brown-dark-bg) !important;
+}
+
+/* --- Custom Button and Icon Styling --- */
+
+/* Primary Action Button (Custom-btn) */
+.custom-btn {
+    /* Accent color for solid buttons */
+    background-color: var(--brown-accent) !important;
+    border-color: var(--brown-accent) !important;
+    color: var(--brown-dark-bg) !important; /* Dark text on light button */
+}
+
+.custom-btn:hover {
+    background-color: #795d43 !important; /* Slightly darker hover */
+    border-color: #795d43 !important;
+}
+
+/* Border Button (Custom-border-btn) */
+.custom-border-btn {
+    color: var(--brown-accent) !important; /* Accent text color */
+    border-color: var(--brown-medium) !important; /* Medium brown border */
+}
+
+.custom-border-btn:hover {
+    background-color: rgba(139, 107, 76, 0.1) !important; /* Light accent fill on hover */
+}
+
+/* Styling for the custom radio button selectors (Project/Role Type) */
+.type-label {
+    background-color: var(--brown-dark-bg) !important;
+    border: 1px solid var(--brown-medium) !important;
+    color: var(--brown-light-text) !important;
+}
+
+.type-option:checked + .type-label {
+    border-color: var(--brown-accent) !important;
+    background-color: rgba(139, 107, 76, 0.2) !important;
+}
+
+
+/* Final Modal and Button overrides */
+.modal-content {
+    border-radius: 12px;
+    padding: 15px;
+    backdrop-filter: blur(6px);
+    background: #1a1a1a;
+}
+
+.btn.custom-btn {
+    background: #b30000;
+    color: #fff;
+}
+
+
+/* ========================================================= */
+/* --- NEW POST CARD STYLES (Integrated from second prompt) --- */
+/* ========================================================= */
+
+/* Update these lines in your CSS */
+.post-card {
+    background: linear-gradient(160deg, var(--secondary-color), var(--primary-color));
+    border-radius: 15px;
+    padding: 20px 25px;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+
+    max-width: 550px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+
+    /* CHANGE THESE TWO LINES: */
+    height: auto !important;      /* Forces card to grow with comments */
+    max-height: none !important;  /* Removes the 2000px limit */
+    overflow: visible !important; /* Ensures contents don't clip */
+
+    border: none;
+    margin-bottom: 20px;
+}
+/* Wrapper for the card when used in the list, ensures it takes up the full width of the column */
+.project-item-wrapper {
+    /* Uses the row/col structure from the HTML, no specific width required here */
+    width: 100%;
+}
+
+/* Hover effect */
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.2);
+}
+
+/* Post Header */
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.post-header img {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+
+.post-header .creator-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.post-header .creator-info b {
+    font-size: 1rem;
+    color: var(--white);
+}
+
+.post-header .creator-info small {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.8);
+}
+
+.post-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--light-color); /* #f8f9fa */
+}
+
+/* Project Details Section */
+.detail-item {
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    color: var(--light-color);
+}
+
+.detail-item i {
+    margin-right: 8px;
+    font-size: 1.1rem;
+    color: #ffc107; /* Use a standard gold/amber color for icons */
+}
+
+/* Like + Comment Buttons Container - Adapted for Creator View Actions */
+.post-card .px-0.pt-3.d-flex.justify-content-between {
+    padding-top: 15px !important;
+    margin-top: auto;
+    /* border-top handled in HTML using Bootstrap classes */
+}
+
+/* View Comments Button/Link */
+.view-comments-btn {
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #ffc107;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+.view-comments-btn:hover {
+    color: #ffca2c;
+}
+
+/* Comment Box Styles (for collapse section - if you implement it later) */
+.comment-box {
+    background: var(--secondary-color); /* Darker background for comments */
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: var(--white);
+}
+
+.comment-box .comment-author {
+    font-weight: bold;
+    color: #ffc107;
+}
+
+/* Fix for textarea brown background on the comment form */
+.post-card textarea.form-control {
+    background-color: var(--secondary-color) !important;
+    border: 1px solid var(--brown-medium) !important;
+    color: var(--white) !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    font-size: 14px !important;
+    resize: vertical;
+}
+
+.post-card textarea.form-control:focus {
+    background-color: #926f4e !important;
+    border-color: var(--brown-accent) !important;
+    box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.25) !important;
+}

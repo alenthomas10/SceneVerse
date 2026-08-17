@@ -1,0 +1,385 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}My Casting Calls - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .post-card {
+        background: linear-gradient(160deg, #2a2a2a, #252525);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 20px 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        color: #fff;
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto 20px auto;
+    }
+
+    .post-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-5px);
+    }
+
+    .category-badge-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: white;
+    }
+
+    .card-header-main {
+        display: flex;
+        align-items: center;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        margin-bottom: 15px;
+    }
+
+    .info-grid-box {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin: 15px 0;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #888;
+        display: block;
+    }
+
+    .stat-value {
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+
+    .card-footer-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 15px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>My Casting Calls 🎭</h1>
+            <p class="text-muted">Manage all your casting calls and find the perfect talent.</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newCastingModal">
+            <i class="bi-megaphone me-2"></i>Post New Casting
+        </button>
+    </div>
+
+    <!-- Casting Calls Grid -->
+    <div class="row">
+        <!-- Filter Column -->
+        <div class="col-lg-3 d-none d-lg-block">
+            <div class="card mb-4 bg-dark border-secondary">
+                <div class="card-header bg-transparent border-bottom border-secondary">
+                    <h5 class="mb-0 fw-bold">Filter Calls</h5>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="/my_castingcalls/" onsubmit="return validateSearch(this)" novalidate>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Project Type</label>
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary" name="project_type">
+                                {% for f in type_filters %}
+                                <option value="{{ f.value }}" {% if f.selected %}selected{% endif %}>{{ f.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Project Status</label>
+                            <select class="form-select form-select-sm bg-dark text-white border-secondary" name="project_status">
+                                {% for f in status_filters %}
+                                <option value="{{ f.value }}" {% if f.selected %}selected{% endif %}>{{ f.label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-muted">Search</label>
+                            <div class="search-error text-danger mb-1" style="display: none;">
+                                <i class="bi bi-exclamation-circle me-1"></i>Please enter a search term.
+                            </div>
+                            <input type="text" class="form-control form-control-sm bg-dark text-white border-secondary" name="search" value="{{ search_query }}" placeholder="Search roles or projects..." style="outline:none;">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
+                            {% if is_filtered %}
+                            <a href="/my_castingcalls/" class="btn btn-outline-secondary btn-sm text-decoration-none">Clear
+                                Filters</a>
+                            {% endif %}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-9">
+            {% for i in casting_calls %}
+            <div class="post-card">
+                <div class="card-header-main">
+                    <div class="category-badge-circle">
+                        {% if i.role_category == 'actor' %}<i class="bi-person-badge"></i>
+                        {% elif i.role_category == 'voice' %}<i class="bi-mic"></i>
+                        {% elif i.role_category == 'crew' %}<i class="bi-tools"></i>
+                        {% elif i.role_category == 'music' %}<i class="bi-headphones"></i>
+                        {% else %}<i class="bi-person"></i>{% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0 fw-bold">{{ i.role_title|default:'Untitled Role' }}</h6>
+                        <small class="text-muted">Project: {{ i.project_title.project_title|default:'Unassigned' }}</small>
+                        <div class="mt-1">
+                            <span class="badge bg-outline-primary border border-primary text-primary" style="font-size: 0.65rem;">
+                                {% if i.project_title.project_type == 'series' %}Web Series{% else %}{{ i.project_title.project_type|capfirst }}{% endif %}
+                            </span>
+                            <span class="badge bg-outline-secondary border border-secondary text-muted ms-1" style="font-size: 0.65rem;">
+                                {{ i.project_title.project_status }}
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        {% now "Ymd" as today_str %}
+                        {% if i.deadline|date:"Ymd" < today_str %} <span class="badge rounded-pill bg-secondary">
+                            Closed</span>
+                            {% else %}
+                            <span class="badge rounded-pill bg-success">{{ i.casting_status|default:'Open' }}</span>
+                            {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body-content">
+                    <div class="mb-2">
+                        <span class="text-primary small fw-bold">{{ i.role_category|capfirst }}</span> •
+                        <span class="small text-muted">{{ i.required_gender }} • {{ i.age_range }}</span>
+                    </div>
+
+                    <div class="small text-muted mb-2">
+                        <strong class="text-white">Description:</strong> {{ i.role_description|truncatechars:80 }}
+                    </div>
+
+                    <div class="info-grid-box">
+                        <div class="info-item">
+                            <span class="stat-label">Applicants</span>
+                            <span class="stat-value text-white">{{ i.application_count|default:'0' }}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="stat-label">Deadline</span>
+                            <span
+                                class="stat-value {% if i.deadline|date:'Ymd' < today_str %}text-muted{% else %}text-danger{% endif %}">
+                                {{ i.deadline|date:"M d, Y" }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-footer-actions">
+                    <a href="/creators/casting/{{ i.id }}/"
+                        class="btn btn-outline-light btn-sm flex-grow-1 fw-bold py-2">Edit</a>
+                    <button class="btn btn-dark btn-sm px-3" data-bs-toggle="modal"
+                        data-bs-target="#deleteModal{{ i.id }}">
+                        <i class="bi-trash"></i>
+                    </button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="bi bi-megaphone display-1 text-muted"></i>
+                <p class="mt-3 text-muted">No casting calls posted yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modals placed outside of transforms/grids -->
+{% for i in casting_calls %}
+<div class="modal fade" id="deleteModal{{ i.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Delete Casting Call?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ i.role_title }}</strong>?</p>
+                <p class="text-danger small mb-0"><i class="bi bi-exclamation-triangle me-1"></i> This action cannot be
+                    undone.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/delete_casting/{{ i.id }}/" method="POST" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- New Casting Modal -->
+<div class="modal fade" id="newCastingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content text-white bg-dark border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Post New Casting Call</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form role="form" action="/casting/" method="post" id="newCastingForm" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Casting Role Title</label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" name="role_title"
+                                placeholder="e.g., Lead Actress, Boom Operator" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Associated Project</label>
+                            <select class="form-select bg-dark text-white border-secondary" name="associated_project" required>
+                                <option value="" disabled selected>Select an existing project</option>
+                                {% for i in proj %}
+                                <option value="{{i.id}}">{{i.project_title}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role Category</label>
+                        <select class="form-select bg-dark text-white border-secondary" name="role_category">
+                            <option value="actor">Actor/Actress</option>
+                            <option value="voice">Voice Artist</option>
+                            <option value="crew">Crew/Tech</option>
+                            <option value="music">Musician/Sound</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Required Gender</label>
+                            <select class="form-select bg-dark text-white border-secondary" name="required_gender">
+                                <option value="any">Any</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="non-binary">Non-Binary</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Required Age Range (Optional)</label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" name="age_range"
+                                placeholder="e.g., 25-35, Teenager">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role Description</label>
+                        <textarea class="form-control bg-dark text-white border-secondary" rows="4" name="role_description"
+                            placeholder="Detail the application instructions..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role Requirements</label>
+                        <textarea class="form-control bg-dark text-white border-secondary" rows="6" name="role_requirements"
+                            placeholder="Detail the character, specific skills needed..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Compensation/Pay</label>
+                            <input type="text" class="form-control bg-dark text-white border-secondary" name="compensation"
+                                placeholder="e.g., $500/day, TBD, Non-Paid/Credit Only" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Application Deadline</label>
+                            <input type="date" class="form-control bg-dark text-white border-secondary" name="deadline" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-secondary">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Post Casting Call</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent selecting past dates for deadlines
+        const today = new Date().toISOString().split('T')[0];
+        const deadlineInputs = document.querySelectorAll('input[name="deadline"]');
+        deadlineInputs.forEach(input => {
+            input.setAttribute('min', today);
+        });
+
+        // Handle custom validation for Post Casting form
+        const castingForm = document.getElementById('newCastingForm');
+        if (castingForm) {
+            castingForm.addEventListener('submit', function(e) {
+                const roleTitle = castingForm.querySelector('input[name="role_title"]');
+                const project = castingForm.querySelector('select[name="associated_project"]');
+                const comp = castingForm.querySelector('input[name="compensation"]');
+                const deadline = castingForm.querySelector('input[name="deadline"]');
+
+                if (!roleTitle.value.trim()) {
+                    e.preventDefault();
+                    showToast('Please enter a Role Title', 'error');
+                    roleTitle.focus();
+                    return;
+                }
+                if (!project.value) {
+                    e.preventDefault();
+                    showToast('Please select a Project', 'error');
+                    project.focus();
+                    return;
+                }
+                if (!comp.value.trim()) {
+                    e.preventDefault();
+                    showToast('Please enter Compensation details', 'error');
+                    comp.focus();
+                    return;
+                }
+                if (!deadline.value) {
+                    e.preventDefault();
+                    showToast('Please select an Application Deadline', 'error');
+                    deadline.focus();
+                    return;
+                }
+
+                // Add validation for description and requirements if needed
+                const desc = castingForm.querySelector('textarea[name="role_description"]');
+                const reqs = castingForm.querySelector('textarea[name="role_requirements"]');
+
+                if (desc && !desc.value.trim()) {
+                    e.preventDefault();
+                    showToast('Please enter a Role Description', 'error');
+                    desc.focus();
+                    return;
+                }
+                if (reqs && !reqs.value.trim()) {
+                    e.preventDefault();
+                    showToast('Please enter Role Requirements', 'error');
+                    reqs.focus();
+                    return;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

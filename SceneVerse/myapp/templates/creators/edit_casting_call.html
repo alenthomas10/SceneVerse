@@ -1,0 +1,142 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Edit Casting Call - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="form-container">
+        <h2 class="mb-4">Edit Casting Call 🎭</h2>
+
+        <form role="form" method="post" action="/creators/casting/{{ casting.id }}/">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Casting Role Title</label>
+                    <input type="text" class="form-control" name="role_title" value="{{ casting.role_title }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Associated Project</label>
+                    <select class="form-select" name="associated_project" required>
+                        {% for p in projects %}
+                        <option value="{{ p.id }}" {% if p.id == casting.project_title.id %}selected{% endif %}>{{ p.project_title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Role Category</label>
+                <select class="form-select" name="role_category">
+                    <option value="actor" {% if casting.role_category == 'actor' %}selected{% endif %}>Actor/Actress</option>
+                    <option value="voice" {% if casting.role_category == 'voice' %}selected{% endif %}>Voice Artist</option>
+                    <option value="crew" {% if casting.role_category == 'crew' %}selected{% endif %}>Crew/Tech</option>
+                    <option value="music" {% if casting.role_category == 'music' %}selected{% endif %}>Musician/Sound</option>
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Required Gender</label>
+                    <select class="form-select" name="required_gender">
+                        <option value="any" {% if casting.required_gender == 'any' %}selected{% endif %}>Any</option>
+                        <option value="male" {% if casting.required_gender == 'male' %}selected{% endif %}>Male</option>
+                        <option value="female" {% if casting.required_gender == 'female' %}selected{% endif %}>Female</option>
+                        <option value="non-binary" {% if casting.required_gender == 'non-binary' %}selected{% endif %}>Non-Binary</option>
+                    </select>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Required Age Range (Optional)</label>
+                    <input type="text" class="form-control" name="age_range" value="{{ casting.age_range|default:'' }}"
+                        placeholder="e.g. 25-35, Teenager">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Role Description</label>
+                <textarea class="form-control" name="role_description" rows="4">{{ casting.role_description }}</textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Role Requirements</label>
+                <textarea class="form-control" name="role_requirements" rows="6" placeholder="Detail the character, specific skills needed...">{{ casting.role_requirements }}</textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Compensation/Pay</label>
+                    <input type="text" class="form-control" name="compensation" value="{{ casting.compensation }}" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Application Deadline</label>
+                    <input type="date" class="form-control" name="deadline" value="{{ casting.deadline|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a href="/my_castingcalls/" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent selecting past dates for deadlines
+        const today = new Date().toISOString().split('T')[0];
+        const deadlineInput = document.querySelector('input[name="deadline"]');
+        if (deadlineInput) {
+            deadlineInput.setAttribute('min', today);
+        }
+
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const roleTitle = form.querySelector('input[name="role_title"]');
+                const comp = form.querySelector('input[name="compensation"]');
+                const desc = form.querySelector('textarea[name="role_description"]');
+                const reqs = form.querySelector('textarea[name="role_requirements"]');
+
+                if (roleTitle && !roleTitle.value.trim()) {
+                    e.preventDefault();
+                    alert('Please enter a Role Title');
+                    roleTitle.focus();
+                    return;
+                }
+                if (comp && !comp.value.trim()) {
+                    e.preventDefault();
+                    alert('Please enter Compensation details');
+                    comp.focus();
+                    return;
+                }
+                if (desc && !desc.value.trim()) {
+                    e.preventDefault();
+                    alert('Please enter a Role Description');
+                    desc.focus();
+                    return;
+                }
+                if (reqs && !reqs.value.trim()) {
+                    e.preventDefault();
+                    alert('Please enter Role Requirements');
+                    reqs.focus();
+                    return;
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

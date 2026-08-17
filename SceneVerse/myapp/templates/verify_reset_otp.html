@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SceneVerse - Verify Reset OTP</title>
+
+    <!-- CSS FILES -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,400;0,600;0,700;1,200;1,700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'login/css/style.css' %}">
+</head>
+
+<body>
+    <style>
+        :root {
+            --primary-color: #8b6b4c;
+            --primary-hover: #6d4c3d;
+            --bg-color: #1a1a1a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Navbar Overrides */
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand,
+        .nav-link {
+            color: var(--text-color) !important;
+        }
+
+        /* Form Container */
+        .auth-form-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            margin-top: 5vh;
+            margin-bottom: 5vh;
+        }
+
+        /* Forms */
+        .otp-input {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid var(--border-color);
+            color: var(--text-color) !important;
+            padding: 12px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .otp-input:focus {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.25);
+        }
+
+        /* Buttons */
+        .custom-btn {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .custom-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Messages Styling - Floating Toast */
+        .messages-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            width: auto;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .toast-message {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            color: white !important;
+            border-radius: 12px;
+            padding: 12px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Footer */
+        .site-footer {
+            border-top: 1px solid var(--border-color);
+            background-color: #111;
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+            margin-top: 50px;
+        }
+
+        .section-padding {
+            padding-top: 80px;
+            padding-bottom: 80px;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+        }
+    </style>
+    <main>
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/">
+                    SceneVerse
+                </a>
+            </div>
+        </nav>
+
+        <section class="section-padding">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-5 col-md-7 col-12 mx-auto">
+                        <div class="auth-form-container">
+                            <div class="text-center mb-4">
+                                <h3 class="text-white fw-bold">Verify Your Reset Code</h3>
+                                <p class="text-white small">Enter the 6-digit code sent to your email.</p>
+                            </div>
+
+                            {% if messages %}
+                            <div class="messages-container">
+                                {% for message in messages %}
+                                <div class="toast-message {{ message.tags }}">
+                                    {{ message }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            <form method="POST" id="otpForm">
+                                {% csrf_token %}
+                                <div class="d-flex justify-content-between mb-4 gap-2">
+                                    <input type="text" name="otp1" class="form-control otp-input" maxlength="1" required autofocus>
+                                    <input type="text" name="otp2" class="form-control otp-input" maxlength="1" required>
+                                    <input type="text" name="otp3" class="form-control otp-input" maxlength="1" required>
+                                    <input type="text" name="otp4" class="form-control otp-input" maxlength="1" required>
+                                    <input type="text" name="otp5" class="form-control otp-input" maxlength="1" required>
+                                    <input type="text" name="otp6" class="form-control otp-input" maxlength="1" required>
+                                </div>
+
+                                <button type="submit" id="verifyBtn" class="btn custom-btn w-100 mb-3">Verify Code</button>
+                                <a href="/login/" class="btn btn-outline-danger w-100 py-2 fw-bold">Cancel</a>
+                            </form>
+                            <div class="text-center mt-3">
+                                <small class="text-white-50">Didn't receive code? <a href="/resend_reset_otp/" id="resendBtn" class="text-primary text-decoration-none fw-bold">Resend Code</a></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="site-footer bg-transparent py-5">
+            <div class="container text-center">
+                <p class="copyright-text text-white-50">Copyright © SceneVerse 2025</p>
+            </div>
+        </footer>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputs = document.querySelectorAll('.otp-input');
+            inputs.forEach((input, index) => {
+                input.addEventListener('input', function () {
+                    if (this.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
+                });
+                input.addEventListener('keydown', function (e) {
+                    if (e.key === 'Backspace' && this.value.length === 0 && index > 0) inputs[index - 1].focus();
+                });
+            });
+
+            setTimeout(function() {
+                const messages = document.querySelectorAll('.toast-message');
+                messages.forEach(function(msg) {
+                    msg.style.transition = 'opacity 0.5s ease';
+                    msg.style.opacity = '0';
+                    setTimeout(() => msg.remove(), 500);
+                });
+            }, 3000);
+
+            // Timer Logic
+            function startResendTimer(btnId, duration) {
+                const btn = document.getElementById(btnId);
+                if (!btn) return;
+
+                let timer = duration;
+                const originalText = btn.innerText;
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.5';
+
+                const interval = setInterval(() => {
+                    btn.innerText = `Resend in ${timer}s`;
+                    if (--timer < 0) {
+                        clearInterval(interval);
+                        btn.innerText = originalText;
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.opacity = '1';
+                    }
+                }, 1000);
+            }
+
+            // Start timer on load
+            startResendTimer('resendBtn', 30);
+
+            // Double-click prevention
+            const otpForm = document.getElementById('otpForm');
+            if (otpForm) {
+                otpForm.addEventListener('submit', function() {
+                    const btn = document.getElementById('verifyBtn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+                    }
+                });
+            }
+
+            // Disable resend on click
+            const resendBtn = document.getElementById('resendBtn');
+            if (resendBtn) {
+                resendBtn.addEventListener('click', function() {
+                    this.style.pointerEvents = 'none';
+                    this.style.opacity = '0.5';
+                    this.innerText = 'Resending...';
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

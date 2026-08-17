@@ -1,0 +1,738 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Find Artists - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Feed Post Card */
+    .post-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 25px;
+        padding: 20px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .post-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .post-header img {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--border-color);
+    }
+
+    .post-media-container img,
+    .post-media-container video {
+        height: 500px;
+        width: 100%;
+        object-fit: contain;
+        background-color: #000;
+    }
+
+    /* Custom Video Player */
+    .video-wrapper {
+        position: relative;
+        overflow: hidden;
+        border-radius: 8px;
+        background: black;
+    }
+
+    .video-wrapper:hover .custom-controls {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .custom-controls {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        padding: 10px 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 10;
+        pointer-events: none;
+        /* Let clicks pass through generally */
+    }
+
+    .custom-controls>* {
+        pointer-events: auto;
+        /* Re-enable clicks for buttons */
+    }
+
+    .btn-control {
+        background: none;
+        border: none;
+        color: white;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 30px;
+        height: 30px;
+    }
+
+    .btn-control:hover {
+        color: var(--primary-color);
+    }
+
+    .action-bar button {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 1.2rem;
+        margin-right: 15px;
+        transition: color 0.2s;
+    }
+
+    .action-bar button:hover {
+        color: white;
+    }
+
+    .like-active {
+        color: #ff3040 !important;
+    }
+
+    /* Comments Section */
+    .comment-box {
+        background: rgba(0, 0, 0, 0.4);
+        padding: 10px 15px;
+        border-radius: 15px;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+
+    .comment-box .comment-author {
+        font-weight: 700;
+        margin-right: 8px;
+        color: #fff;
+    }
+
+    textarea[name="comment"] {
+        background: rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid var(--border-color) !important;
+        color: white !important;
+        border-radius: 20px !important;
+    }
+
+    textarea[name="comment"]:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>Artist Feed 🎨</h1>
+            <p class="text-muted">Explore the latest work from artists across the network.</p>
+        </div>
+        <div class="search-box-wrapper w-100">
+            <div class="search-box bg-dark border border-secondary rounded-pill px-3 py-2 d-flex align-items-center">
+                <i class="bi bi-search text-muted me-2"></i>
+                <form action="{% url 'findartists' %}" method="GET" class="w-100" onsubmit="return validateSearch(this)" novalidate>
+                    <div class="search-error text-danger mb-1" style="display: none; font-size: 0.8rem;">
+                        <i class="bi bi-exclamation-circle me-1"></i>Please enter a search term.
+                    </div>
+                    <input type="text" name="q" class="bg-transparent border-0 text-white w-100"
+                        placeholder="Search artists or posts..." style="outline:none;" value="{{ request.GET.q }}">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed Content -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            {% for post in all_artist_posts %}
+            <div class="post-card">
+                <!-- Header -->
+                <div class="d-flex align-items-center mb-3 post-header">
+                    <a href="{% url 'view_artist_profile' post.post.added_by.id %}">
+                        <img src="{% if post.post.added_by.details and post.post.added_by.details.avatarphoto %}{{ post.post.added_by.details.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{post.post.added_by.first_name}}{% endif %}"
+                            class="me-3" alt="Avatar"
+                            onerror="this.src='https://ui-avatars.com/api/?name={{post.post.added_by.first_name}}'">
+                    </a>
+                    <div>
+                        <h6 class="mb-0 fw-bold">
+                            <a href="{% url 'view_artist_profile' post.post.added_by.id %}"
+                                class="text-white text-decoration-none">
+                                {{ post.post.added_by.first_name }} {{ post.post.added_by.last_name }}
+                            </a>
+                        </h6>
+                        <small class="text-muted">
+                            {{ post.post.added_by.details.title }} •
+                            {{ post.post.created_at|timesince }} ago
+                        </small>
+                    </div>
+                    <button class="btn btn-link ms-auto text-muted"><i class="bi bi-three-dots"></i></button>
+                </div>
+
+                <!-- Content -->
+                <p class="mb-3">{{ post.post.caption }}</p>
+
+                <!-- Media -->
+                {% if post.post.all_media %}
+                <div class="post-media-container">
+                    <div id="feedCarousel{{ post.post.id }}" class="carousel slide" data-bs-interval="false">
+                        <div class="carousel-inner">
+                            {% for media_item in post.post.all_media %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                {% if media_item.image %}
+                                <img src="{{ media_item.image.url }}" class="d-block w-100" alt="Post Image">
+                                {% elif media_item.video %}
+                                <div class="video-wrapper">
+                                    <video class="d-block w-100 feed-video"
+                                        style="height: 500px; object-fit: contain; background-color: #000;"
+                                        data-start="{{ media_item.start_time|default:0 }}"
+                                        data-end="{{ media_item.end_time|default:'' }}">
+                                        <source src="{{ media_item.video.url }}" type="video/mp4">
+                                    </video>
+                                    <div class="custom-controls">
+                                        <button class="btn-control play-btn">
+                                            <i class="bi bi-play-fill fs-4"></i>
+                                        </button>
+                                        <button class="btn-control mute-btn ms-2">
+                                            <i class="bi bi-volume-up"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if post.post.all_media|length > 1 %}
+                        <button class="carousel-control-prev" type="button"
+                            data-bs-target="#feedCarousel{{ post.post.id }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button"
+                            data-bs-target="#feedCarousel{{ post.post.id }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="action-bar border-top border-secondary pt-3 mt-3 d-flex align-items-center">
+                    <form method="POST" action="/like_artist_post/" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                        <button type="submit" class="p-0 {% if post.post.id in creator_likes %}like-active{% endif %}">
+                            <i class="bi-heart{% if post.post.id in creator_likes %}-fill{% endif %}"></i>
+                            <span class="ms-1">{{ post.post.artistpostlike_set.count }}</span>
+                        </button>
+                    </form>
+                    <button class="p-0" data-bs-toggle="collapse" data-bs-target="#comments{{ post.post.id }}">
+                        <i class="bi-chat"></i>
+                        <span class="ms-1">{{ post.com|length }}</span>
+                    </button>
+                </div>
+
+                <!-- Comments -->
+                <div class="collapse mt-3" id="comments{{ post.post.id }}">
+                    <div class="p-2">
+                        {% for comment in post.com %}
+                        <div class="comment-group mb-3">
+                            <!-- Parent Comment -->
+                            <div class="comment-box d-flex align-items-start" id="comment-{{ comment.id }}">
+                                <a
+                                    href="{% if comment.commented_by.id == request.session.cid %}/creator_profile/{% elif comment.commented_by.role == 'creator' %}{% url 'view_creator_profile' comment.commented_by.id %}{% else %}{% url 'view_artist_profile' comment.commented_by.id %}{% endif %}">
+                                    <img src="{% if comment.commented_by.artistdetails_set.first and comment.commented_by.artistdetails_set.first.avatarphoto %}{{ comment.commented_by.artistdetails_set.first.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{comment.commented_by.first_name}}{% endif %}"
+                                        class="rounded-circle me-2" width="30" height="30" style="object-fit:cover;">
+                                </a>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <a href="{% if comment.commented_by.id == request.session.cid %}/creator_profile/{% elif comment.commented_by.role == 'creator' %}{% url 'view_creator_profile' comment.commented_by.id %}{% else %}{% url 'view_artist_profile' comment.commented_by.id %}{% endif %}"
+                                                class="comment-author text-primary small d-block font-weight-bold text-decoration-none">
+                                                {{ comment.commented_by.first_name }} {{ comment.commented_by.last_name }}
+                                            </a>
+                                            <span class="text-white-50 comment-text">{{ comment.comment }}</span>
+                                            <div class="mt-1">
+                                                <a href="#"
+                                                    class="btn-reply-comment text-muted small text-decoration-none"
+                                                    data-comment-id="{{ comment.id }}">
+                                                    <i class="bi bi-reply me-1"></i>Reply
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {% if comment.commented_by.id == request.session.cid %}
+                                        <div class="dropdown">
+                                            <button class="btn btn-link btn-sm text-muted p-0"
+                                                data-bs-toggle="dropdown">
+                                                <i class="bi bi-three-dots-vertical"></i>
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                                <li><a class="dropdown-item btn-edit-comment" href="#"
+                                                        data-comment-id="{{ comment.id }}"><i
+                                                            class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                <li><a class="dropdown-item btn-delete-comment text-danger" href="#"
+                                                        data-comment-id="{{ comment.id }}"><i
+                                                            class="bi bi-trash me-2"></i>Delete</a></li>
+                                            </ul>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+
+                                    <!-- Reply Form (Hidden) -->
+                                    <div class="reply-form-container mt-2" id="reply-form-{{ comment.id }}"
+                                        style="display: none;">
+                                        <form method="POST" action="/comment_artist_post/" class="text-end">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                                            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                            <textarea name="comment" class="form-control form-control-sm mb-2" rows="1"
+                                                placeholder="Write a reply..." required></textarea>
+                                            <div class="d-flex justify-content-end gap-2">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-secondary btn-cancel-reply"
+                                                    data-comment-id="{{ comment.id }}">Cancel</button>
+                                                <button type="submit" class="btn btn-sm btn-primary px-3">Reply</button>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    <!-- Replies Container -->
+                                    <div class="replies-container ms-4 border-start ps-3 mt-2"
+                                        id="replies-{{ comment.id }}">
+                                        {% for reply in comment.replies.all %}
+                                        <div class="comment-box d-flex align-items-start mt-2"
+                                            id="comment-{{ reply.id }}">
+                                            <img src="{% if reply.commented_by.artistdetails_set.first and reply.commented_by.artistdetails_set.first.avatarphoto %}{{ reply.commented_by.artistdetails_set.first.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{reply.commented_by.first_name}}{% endif %}"
+                                                class="rounded-circle me-2" width="25" height="25"
+                                                style="object-fit:cover;">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div>
+                                                        <a href="{% if reply.commented_by.id == request.session.cid %}/creator_profile/{% elif reply.commented_by.role == 'creator' %}{% url 'view_creator_profile' reply.commented_by.id %}{% else %}{% url 'view_artist_profile' reply.commented_by.id %}{% endif %}"
+                                                            class="comment-author text-info small d-block font-weight-bold text-decoration-none">
+                                                            {{ reply.commented_by.first_name }} {{ reply.commented_by.last_name }}
+                                                        </a>
+                                                        <span class="text-white-50 comment-text">
+                                                            {{ reply.comment }}
+                                                        </span>
+                                                    </div>
+                                                    {% if reply.commented_by.id == request.session.cid %}
+                                                    <div class="dropdown">
+                                                        <button class="btn btn-link btn-sm text-muted p-0"
+                                                            data-bs-toggle="dropdown">
+                                                            <i class="bi bi-three-dots-vertical"></i>
+                                                        </button>
+                                                        <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                                            <li><a class="dropdown-item btn-edit-comment" href="#"
+                                                                    data-comment-id="{{ reply.id }}"><i
+                                                                        class="bi bi-pencil me-2"></i>Edit</a></li>
+                                                            <li><a class="dropdown-item btn-delete-comment text-danger"
+                                                                    href="#" data-comment-id="{{ reply.id }}"><i
+                                                                        class="bi bi-trash me-2"></i>Delete</a></li>
+                                                        </ul>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <form method="POST" action="/comment_artist_post/" class="mt-2 text-end">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                            <textarea name="comment" class="form-control mb-2" rows="1" placeholder="Write a comment..."
+                                required></textarea>
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-images display-1 mb-3"></i>
+                <p>No posts in your feed yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Comment Confirmation Modal -->
+<div class="modal fade" id="deleteCommentModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Comment?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <i class="bi bi-trash3 text-danger display-4 mb-3"></i>
+                <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger px-4" id="confirmDeleteComment">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Include same AJAX logic for Likes/Comments as before, adapted if necessary
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- A. AJAX for LIKES/UNLIKES (URL: /like_artist_post/) ---
+        document.querySelectorAll('.action-bar form[action="/like_artist_post/"]').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const form = this;
+                const actionUrl = form.getAttribute('action');
+                const postId = form.querySelector('input[name="post_id"]').value;
+                const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                const likeButton = form.querySelector('button');
+                const icon = likeButton.querySelector('i');
+
+                likeButton.disabled = true;
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({ 'post_id': postId })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.is_liked) {
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill');
+                                likeButton.classList.add('like-active');
+                            } else {
+                                icon.classList.remove('bi-heart-fill');
+                                icon.classList.add('bi-heart');
+                                likeButton.classList.remove('like-active');
+                            }
+                        }
+                    })
+                    .finally(() => { likeButton.disabled = false; });
+            });
+        });
+
+        // --- B. AJAX for COMMENTS & REPLIES (using event delegation) ---
+        document.addEventListener('submit', function (e) {
+            // Check if the submitted form is a comment form
+            if (e.target.matches('form[action="/comment_artist_post/"]')) {
+                e.preventDefault();
+                const form = e.target;
+                const actionUrl = form.getAttribute('action');
+                const formData = new FormData(form);
+                const submitButton = form.querySelector('button[type="submit"]');
+                const textarea = form.querySelector('textarea');
+                
+                if (textarea.value.trim().length === 0) {
+                    alert('Comment cannot be empty or just whitespace.');
+                    return;
+                }
+
+                const csrftoken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+                const parentId = form.querySelector('input[name="parent_id"]')?.value;
+
+                submitButton.disabled = true;
+
+                fetch(actionUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: new URLSearchParams(formData)
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (parentId) {
+                                // It's a reply
+                                const repliesContainer = document.getElementById(`replies-${parentId}`);
+                                if (repliesContainer) {
+                                    repliesContainer.insertAdjacentHTML('beforeend', data.comment_html);
+                                }
+                                // Hide the reply form
+                                const replyFormContainer = document.getElementById(`reply-form-${parentId}`);
+                                if (replyFormContainer) replyFormContainer.style.display = 'none';
+                            } else {
+                                // It's a top-level comment
+                                // Insert before the main comment form
+                                form.insertAdjacentHTML('beforebegin', data.comment_html);
+                            }
+                            // Clear and reset
+                            textarea.value = '';
+                        } else {
+                            alert('Error: ' + (data.error || 'Failed to post comment'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An unexpected error occurred.');
+                    })
+                    .finally(() => {
+                        submitButton.disabled = false;
+                    });
+            }
+        });
+
+        // --- B.1 TOGGLE REPLY FORM ---
+        document.addEventListener('click', function (e) {
+            const replyBtn = e.target.closest('.btn-reply-comment');
+            if (replyBtn) {
+                e.preventDefault();
+                const commentId = replyBtn.dataset.commentId;
+                const formContainer = document.getElementById(`reply-form-${commentId}`);
+                if (formContainer) {
+                    formContainer.style.display = formContainer.style.display === 'none' ? 'block' : 'none';
+                    if (formContainer.style.display === 'block') {
+                        formContainer.querySelector('textarea').focus();
+                    }
+                }
+            }
+
+            const cancelReplyBtn = e.target.closest('.btn-cancel-reply');
+            if (cancelReplyBtn) {
+                e.preventDefault();
+                const commentId = cancelReplyBtn.dataset.commentId;
+                const formContainer = document.getElementById(`reply-form-${commentId}`);
+                if (formContainer) formContainer.style.display = 'none';
+            }
+        });
+
+        // --- C. AJAX for DELETE COMMENT ---
+        let commentIdToDelete = null;
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteCommentModal'));
+
+        document.addEventListener('click', function (e) {
+            const deleteBtn = e.target.closest('.btn-delete-comment');
+            if (deleteBtn) {
+                e.preventDefault();
+                commentIdToDelete = deleteBtn.dataset.commentId;
+                deleteModal.show();
+            }
+        });
+
+        document.getElementById('confirmDeleteComment').addEventListener('click', function () {
+            if (!commentIdToDelete) return;
+
+            const btn = this;
+            btn.disabled = true;
+
+            fetch(`/delete_artist_comment/${commentIdToDelete}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const commentBox = document.getElementById(`comment-${commentIdToDelete}`);
+                        if (commentBox) commentBox.remove();
+                        deleteModal.hide();
+                    } else {
+                        alert('Error deleting comment');
+                    }
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    commentIdToDelete = null;
+                });
+        });
+
+        // --- D. AJAX for EDIT COMMENT ---
+        document.addEventListener('click', function (e) {
+            const editBtn = e.target.closest('.btn-edit-comment');
+            if (editBtn) {
+                e.preventDefault();
+                const commentId = editBtn.dataset.commentId;
+                const commentBox = document.getElementById(`comment-${commentId}`);
+                const textSpan = commentBox.querySelector('.comment-text');
+                const currentText = textSpan.innerText;
+
+                // Check if already editing
+                if (commentBox.querySelector('.edit-interface')) return;
+
+                // Create edit interface
+                const editDiv = document.createElement('div');
+                editDiv.className = 'mt-2 edit-interface';
+                editDiv.innerHTML = `
+                    <textarea class="form-control form-control-sm mb-2 edit-textarea">${currentText}</textarea>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-primary btn-save-edit" data-comment-id="${commentId}">Save</button>
+                        <button class="btn btn-sm btn-outline-secondary btn-cancel-edit">Cancel</button>
+                    </div>
+                `;
+
+                // Hide original text and dropdown
+                textSpan.style.display = 'none';
+                const dropdown = commentBox.querySelector('.dropdown');
+                if (dropdown) dropdown.style.display = 'none';
+                textSpan.parentNode.appendChild(editDiv);
+
+                // Handle Cancel
+                editDiv.querySelector('.btn-cancel-edit').addEventListener('click', function () {
+                    editDiv.remove();
+                    textSpan.style.display = 'inline';
+                    if (dropdown) dropdown.style.display = 'block';
+                });
+
+                // Handle Save
+                editDiv.querySelector('.btn-save-edit').addEventListener('click', function () {
+                    const newText = editDiv.querySelector('.edit-textarea').value;
+                    if (newText.trim().length === 0) {
+                        alert('Comment cannot be empty or just whitespace.');
+                        return;
+                    }
+                    const saveBtn = this;
+                    saveBtn.disabled = true;
+
+                    fetch(`/edit_artist_comment/${commentId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrftoken,
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({ 'comment': newText })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                textSpan.innerText = data.new_text;
+                                editDiv.remove();
+                                textSpan.style.display = 'inline';
+                                if (dropdown) dropdown.style.display = 'block';
+                            } else {
+                                alert('Error saving comment');
+                                saveBtn.disabled = false;
+                            }
+                        });
+                });
+            }
+        });
+    });
+
+    document.querySelectorAll('.video-wrapper').forEach(wrapper => {
+        const video = wrapper.querySelector('video');
+        const playBtn = wrapper.querySelector('.play-btn');
+        const muteBtn = wrapper.querySelector('.mute-btn');
+
+        // Parse Metadata
+        let start = parseFloat(video.dataset.start) || 0;
+        let endStr = video.dataset.end;
+        let end = (endStr && endStr !== "None") ? parseFloat(endStr) : null;
+
+        // Toggle Play
+        const togglePlay = () => {
+            if (video.paused) {
+                // PAUSE ALL OTHER VIDEOS
+                document.querySelectorAll('video').forEach(otherVideo => {
+                    if (otherVideo !== video) {
+                        otherVideo.pause();
+                        const otherWrapper = otherVideo.closest('.video-wrapper');
+                        if (otherWrapper) {
+                            const otherPlayBtn = otherWrapper.querySelector('.play-btn');
+                            if (otherPlayBtn) otherPlayBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+                        }
+                    }
+                });
+
+                // Reset to start if finished or before start
+                if (end && video.currentTime >= end) {
+                    video.currentTime = start;
+                } else if (video.currentTime < start) {
+                    video.currentTime = start;
+                }
+
+                video.play();
+                playBtn.innerHTML = '<i class="bi bi-pause-fill fs-4"></i>';
+            } else {
+                video.pause();
+                playBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+            }
+        };
+
+        // LIGHTWEIGHT END CHECK ONLY
+        const checkEnd = () => {
+            const safeEnd = end || video.duration;
+            if (!safeEnd) return;
+
+            if (video.currentTime >= safeEnd) {
+                video.pause();
+                video.currentTime = start;
+                playBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+            }
+        };
+
+        // Event Listeners
+        playBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePlay();
+        });
+
+        video.addEventListener('click', togglePlay);
+        const enforceStartTime = () => {
+            // Add a small buffer to prevent infinite loops if playback is slightly off
+            if (start > 0 && video.currentTime < (start - 0.1)) {
+                video.currentTime = start;
+            }
+        };
+
+        // Enforce on play/metadata, but NOT on timeupdate to avoid lag
+        video.addEventListener('loadedmetadata', enforceStartTime);
+        video.addEventListener('play', enforceStartTime);
+
+        // Standard timeupdate for end checking only
+        video.addEventListener('timeupdate', checkEnd);
+
+        if (video.readyState >= 1) {
+            enforceStartTime();
+        }
+
+        // Mute
+        if (muteBtn) {
+            muteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                video.muted = !video.muted;
+                muteBtn.innerHTML = video.muted ? '<i class="bi bi-volume-mute"></i>' : '<i class="bi bi-volume-up"></i>';
+            });
+        }
+
+        // Hover to Play Logic
+        wrapper.addEventListener('mouseenter', () => {
+            if (video.paused) togglePlay();
+        });
+
+        wrapper.addEventListener('mouseleave', () => {
+            if (!video.paused) togglePlay();
+        });
+    });
+</script>
+{% endblock %}

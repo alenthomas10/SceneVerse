@@ -1,0 +1,113 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Verify Profile Change - SceneVerse{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="card bg-dark text-white border-secondary p-4"
+        style="max-width: 400px; width: 100%; border-radius: 15px;">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold">Verify Profile Change</h3>
+            <p class="text-muted small">We've sent a 6-digit verification code to your current email address. Enter it below to confirm these sensitive changes.</p>
+        </div>
+
+
+        <form method="POST" class="needs-validation" novalidate id="otpForm">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between mb-4 gap-2">
+                <input type="text" name="otp1"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required autofocus>
+                <input type="text" name="otp2"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp3"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp4"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp5"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp6"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+            </div>
+
+            <button type="submit" id="verifyBtn" class="btn btn-primary w-100 py-2 fw-bold">Verify & Update</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <p class="text-muted small mb-1">Didn't receive the code?</p>
+            <a href="/resend_profile_otp/" id="resendBtn" class="text-info text-decoration-none fw-bold me-2">Resend Code</a>
+            <span class="text-muted">|</span>
+            <a href="{% if p_type == 'creator' %}/creator_profile/{% elif p_type == 'artist' %}/artprofile/{% else %}/settings/{% endif %}" class="text-muted text-decoration-none small ms-2">Cancel Update</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-focus next input script
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', function () {
+            if (this.value.length === 1) {
+                if (index < inputs.length - 1) inputs[index + 1].focus();
+            }
+        });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && this.value.length === 0) {
+                if (index > 0) inputs[index - 1].focus();
+            }
+        });
+        // Allow only numbers
+        input.addEventListener('keypress', function(e) {
+            if (e.which < 48 || e.which > 57) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Timer Logic
+    function startResendTimer(btnId, duration) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+
+        let timer = duration;
+        const originalText = btn.innerText;
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.5';
+
+        const interval = setInterval(() => {
+            btn.innerText = `Resend in ${timer}s`;
+            if (--timer < 0) {
+                clearInterval(interval);
+                btn.innerText = originalText;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+            }
+        }, 1000);
+    }
+
+    // Start timer on load
+    startResendTimer('resendBtn', 30);
+
+    // Double-click prevention
+    document.getElementById('otpForm').addEventListener('submit', function() {
+        const btn = document.getElementById('verifyBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Updating...';
+        }
+    });
+
+    // Disable resend on click
+    document.getElementById('resendBtn').addEventListener('click', function() {
+        this.style.pointerEvents = 'none';
+        this.style.opacity = '0.5';
+        this.innerText = 'Resending...';
+    });
+</script>
+{% endblock %}

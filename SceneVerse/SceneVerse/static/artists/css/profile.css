@@ -1,0 +1,467 @@
+/* Add these CSS variables at the top of profile.css */
+:root {
+    --text-dark: #ffffff;
+    /* Changed to white for better contrast */
+    --text-muted: #b0b0b0;
+    /* Lighter grey for better visibility on dark */
+    --light-bg: #222222;
+    /* Darker background for cards */
+    --hover-bg: #333333;
+    /* Dark hover state */
+    --border-color: rgba(255, 255, 255, 0.1);
+    /* Subtle border for dark theme */
+    --primary-dark: #6d4c3d;
+}
+
+/* Profile Page Specific Styles */
+
+/* Profile Header */
+.profile-header {
+    margin-bottom: 2rem;
+}
+
+.profile-header .text-muted {
+    color: #cccccc !important;
+    /* Force light grey for visibility */
+}
+
+.profile-header h1,
+.profile-header h2,
+.profile-header h5 {
+    color: #ffffff !important;
+    /* Force white headings */
+}
+
+.profile-cover {
+    position: relative;
+    border-radius: 12px;
+    overflow: visible;
+    /* allow avatar to show */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.cover-image {
+    position: relative;
+    height: 300px;
+    background: #3b271a;
+}
+
+.cover-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.btn-cover-edit {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    transition: all 0.3s ease;
+}
+
+.btn-cover-edit:hover {
+    background: white;
+    transform: scale(1.05);
+}
+
+.profile-info {
+    position: relative;
+    padding: 0 2rem 2rem;
+    background: #000000;
+}
+
+.profile-avatar {
+    position: static;
+    margin-bottom: 0;
+    margin-right: 2rem;
+    align-self: center;
+}
+
+.profile-avatar img {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 4px solid white;
+    background: #f8f8f8;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-avatar-edit {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-avatar-edit:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.profile-details {
+    /* margin-left: 150px; - Removed for flex layout */
+    padding-top: 1rem;
+}
+
+.profile-details h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    color: var(--text-dark);
+}
+
+.profile-title {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+}
+
+.profile-stats {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Content Cards - Ensure they have light background */
+.profile-content-grid .content-card {
+    background: #000000 !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+.profile-content-grid .card-header {
+    background: transparent !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.profile-content-grid .card-header h4 {
+    color: var(--text-dark) !important;
+}
+
+.profile-content-grid .card-body {
+    color: var(--text-dark) !important;
+}
+
+/* About Section */
+.about-text {
+    line-height: 1.6;
+    color: var(--text-dark);
+    margin-bottom: 1.5rem;
+}
+
+.about-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-muted);
+}
+
+.detail-item i {
+    width: 16px;
+    color: var(--primary-color);
+}
+
+/* Skills & Specialties */
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tag {
+    background: #000000;
+    color: var(--text-dark);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.skill-tag:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Contact Information */
+.contact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-dark);
+}
+
+.contact-item i {
+    width: 16px;
+    color: var(--primary-color);
+}
+
+/* Portfolio Highlights */
+.portfolio-highlights {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.portfolio-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: var(--light-bg);
+}
+
+.portfolio-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.portfolio-item:hover img {
+    transform: scale(1.05);
+}
+
+.portfolio-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+    padding: 1rem;
+    color: white;
+    transform: translateY(100%);
+    transition: transform 0.3s ease;
+}
+
+.portfolio-item:hover .portfolio-overlay {
+    transform: translateY(0);
+}
+
+/* Experience & Credits */
+.experience-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.experience-item {
+    display: flex;
+    gap: 1rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.experience-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.experience-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.experience-content h5 {
+    margin-bottom: 0.25rem;
+    color: var(--text-dark);
+}
+
+.experience-meta {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+.experience-description {
+    color: var(--text-dark);
+    line-height: 1.5;
+}
+
+/* Recent Activity */
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    background: var(--light-bg);
+    transition: all 0.3s ease;
+}
+
+.activity-item:hover {
+    background: var(--hover-bg);
+    transform: translateY(-2px);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-text {
+    margin-bottom: 0.25rem;
+    color: var(--text-dark);
+}
+
+.activity-meta {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Edit Buttons */
+.btn-edit {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.btn-edit:hover {
+    background: var(--light-bg);
+    color: var(--primary-color);
+}
+
+/* Responsive Design */
+@media (max-width: 992px) {
+    .profile-details {
+        margin-left: 0;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        position: static;
+        margin-bottom: 1rem;
+    }
+
+    .profile-stats {
+        justify-content: center;
+    }
+
+    .profile-actions {
+        justify-content: center;
+    }
+
+    .portfolio-highlights {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .cover-image {
+        height: 200px;
+    }
+
+    .profile-avatar img {
+        width: 100px;
+        height: 100px;
+    }
+
+    .profile-stats {
+        gap: 1rem;
+    }
+
+    .profile-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-actions .btn {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .profile-info {
+        padding: 0 1rem 1rem;
+    }
+
+    .profile-details h1 {
+        font-size: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 1.25rem;
+    }
+
+    .portfolio-highlights {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}

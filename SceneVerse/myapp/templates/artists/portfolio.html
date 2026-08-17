@@ -1,0 +1,110 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Portfolio - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'artists/css/artists.css' %}" rel="stylesheet">
+<link href="{% static 'artists/css/casting_calls.css' %}" rel="stylesheet">
+<style>
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-box {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 10px 10px 10px 45px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        outline: none;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-color);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header -->
+<header class="content-header">
+    <div class="d-flex align-items-center w-100">
+        <button class="btn sidebar-toggle d-lg-none me-3 p-0 text-white border-0 bg-transparent">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+
+        <div class="search-box d-none d-md-block">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search portfolio...">
+        </div>
+
+        <div class="ms-auto d-flex align-items-center gap-3">
+            <button class="btn btn-icon position-relative text-white">
+                <i class="bi bi-bell fs-5"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    style="font-size: 0.6rem;">5</span>
+            </button>
+            <button class="btn btn-outline-primary" onclick="openMessages()">
+                <i class="bi bi-chat me-2"></i>Messages
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Portfolio Content -->
+<div class="content-area px-4 pb-5">
+
+    <!-- Page Header -->
+    <section class="page-header mb-4">
+        <h1 class="fw-bold mb-2">My Portfolio</h1>
+        <p class="text-muted">Showcase your work and projects here.</p>
+    </section>
+
+    <!-- Portfolio Projects Grid -->
+    <section class="portfolio-grid">
+        <div class="row">
+            {% for project in portfolio_projects %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="portfolio-card card h-100 bg-dark border-secondary">
+                    <img src="{{ project.image_url }}" alt="{{ project.title }}" class="portfolio-image card-img-top"
+                        style="height: 200px; object-fit: cover;">
+                    <div class="portfolio-card-body card-body d-flex flex-column">
+                        <h4 class="card-title h5">{{ project.title }}</h4>
+                        <p class="card-text text-muted small mb-4">{{ project.description|truncatewords:20 }}</p>
+                        <a href="/portfolio/{{ project.id }}" class="btn btn-primary w-100 mt-auto">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-folder-x display-1 text-muted mb-3 d-block"></i>
+                <p class="text-muted h5">You have no projects in your portfolio yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

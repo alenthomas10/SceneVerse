@@ -1,0 +1,360 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}User Management - SceneVerse Admin{% endblock %}
+{% block back_button %}{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'admin/css/admin.css' %}" rel="stylesheet">
+<style>
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+    .user-avatar-sm {
+        width: 35px;
+        height: 35px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background: #222;
+    }
+    .users-table th, .users-table td {
+        vertical-align: middle;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header -->
+<header class="content-header">
+    <div class="d-flex align-items-center w-100">
+        <button class="btn sidebar-toggle d-lg-none me-3 p-0 text-white border-0 bg-transparent">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+        <div class="header-title">
+            <h1 class="h3 mb-1">Users Management</h1>
+            <p class="text-muted mb-0">Manage all users, roles, and permissions</p>
+        </div>
+        <div class="ms-auto">
+            <!-- Add User button removed by request -->
+        </div>
+    </div>
+</header>
+
+<!-- Dashboard Content -->
+<div class="content-area px-4 pb-5">
+    <!-- Stats Section -->
+    <section class="stats-section mb-4">
+        <div class="row">
+            <div class="col-xl-3 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-primary text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-people"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.total }}</h4>
+                    <small class="text-muted">Total Users</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-success text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.creators }}</h4>
+                    <small class="text-muted">Creators</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-warning text-dark rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-person-video"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.artists }}</h4>
+                    <small class="text-muted">Artists</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-4 col-6 mb-4">
+                <div class="card bg-dark border-secondary h-100 text-center p-3">
+                    <div class="stat-icon bg-info text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h4 class="h5 mb-0">{{ stats.admins }}</h4>
+                    <small class="text-muted">Admins</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Users Table Section -->
+    <section class="table-section">
+        <div class="card bg-dark border-secondary">
+            <div
+                class="card-header bg-transparent border-secondary py-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <h5 class="mb-0">All Users</h5>
+                <form action="/admin_users/" method="GET" class="d-flex flex-column gap-1 w-100 w-md-auto" onsubmit="return validateSearch(this)" novalidate>
+                    <div class="search-error text-danger mb-1" style="display: none;">
+                        <i class="bi bi-exclamation-circle me-1"></i>Please enter a search term.
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="search-box position-relative">
+                            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                            <input type="text" name="search" placeholder="Search by name, email, or role..."
+                                class="form-control bg-dark border-secondary text-white ps-5"
+                                value="{{ request.GET.search }}" style="outline:none;">
+                        </div>
+                        <select class="form-select bg-dark border-secondary text-white" name="role"
+                            style="width: auto;" onchange="this.form.submit()">
+                            <option value="">All Roles</option>
+                            <option value="creator" {% if request.GET.role == 'creator' %}selected{% endif %}>Creator</option>
+                            <option value="artist" {% if request.GET.role == 'artist' %}selected{% endif %}>Artist</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary d-none">Search</button>
+                        {% if request.GET.search or request.GET.role %}
+                        <a href="/admin_users/" class="btn btn-outline-secondary">Clear</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover users-table" id="usersTable">
+                        <thead>
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th class="text-center">Photo</th>
+                                <th class="text-start">First Name</th>
+                                <th class="text-start">Last Name</th>
+                                <th class="text-start">Email</th>
+                                <th class="text-center">Role</th>
+                                <th class="text-center">Rights</th>
+                                <th class="text-center">View</th>
+                                <th colspan="2" class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in us %}
+                            <tr>
+                                <th scope="row" class="text-center">{{forloop.counter}}</th>
+                                <td class="text-center">
+                                    {% with details=i.artistdetails_set.first %}
+                                        {% if details and details.avatarphoto %}
+                                            <img src="{{ details.avatarphoto.url }}" alt="Avatar" class="user-avatar-sm">
+                                        {% else %}
+                                            <img src="https://ui-avatars.com/api/?name={{ i.first_name }}+{{ i.last_name }}&background=8b6b4c&color=fff" alt="Avatar" class="user-avatar-sm">
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td class="text-start">{{i.first_name}}</td>
+                                <td class="text-start">{{i.last_name}}</td>
+                                <td class="text-start">{{i.email}}</td>
+                                <td class="text-center">
+                                    <span class="badge {% if i.role == 'admin' %}bg-info{% elif i.role == 'creator' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                        {{i.role|title}}
+                                    </span>
+                                </td>
+                                <td class="text-center">{{i.rights}}</td>
+                                <td class="text-center">
+                                    {% if i.role == 'artist' %}
+                                        <a href="{% url 'view_artist_profile' i.id %}" class="btn btn-sm btn-link text-info p-0" title="View Profile">
+                                            <i class="bi bi-eye fs-5"></i>
+                                        </a>
+                                    {% elif i.role == 'creator' %}
+                                        <a href="{% url 'view_creator_profile' i.id %}" class="btn btn-sm btn-link text-info p-0" title="View Profile">
+                                            <i class="bi bi-eye fs-5"></i>
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center"><a href="/blockuser/{{i.id}}" class="btn btn-sm btn-primary">BLOCK</a></td>
+                                <td class="text-center"><a href="/unblockuser/{{i.id}}" class="btn btn-sm btn-outline-primary">UNBLOCK</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    
+                    <nav>
+                        <ul class="pagination mb-0" id="pagination">
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- Modals -->
+<!-- Add User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Add New User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" name="first_name"
+                                required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" name="last_name"
+                                required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control bg-secondary text-white border-0" name="email" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control bg-secondary text-white border-0" name="password"
+                                required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Confirm Password</label>
+                            <input type="password" class="form-control bg-secondary text-white border-0"
+                                name="confirm_password" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-control bg-secondary text-white border-0" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Admin</option>
+                                <option value="creator">Creator</option>
+                                <option value="artist">Artist</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-control bg-secondary text-white border-0" name="status" required>
+                                <option value="active">Active</option>
+                                <option value="pending">Pending</option>
+                                <option value="banned">Banned</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">User Rights</label>
+                        <div class="rights-checkboxes">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="rights" value="post_create"
+                                    id="right1">
+                                <label class="form-check-label" for="right1">Create Posts</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="rights" value="project_create"
+                                    id="right2">
+                                <label class="form-check-label" for="right2">Create Projects</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="rights" value="user_manage"
+                                    id="right3">
+                                <label class="form-check-label" for="right3">Manage Users</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="rights" value="content_moderate"
+                                    id="right4">
+                                <label class="form-check-label" for="right4">Moderate Content</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addNewUser()">Add User</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit User</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId" name="user_id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" id="editFirstName"
+                                name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control bg-secondary text-white border-0" id="editLastName"
+                                name="last_name" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control bg-secondary text-white border-0" id="editEmail"
+                            name="email" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Role</label>
+                            <select class="form-control bg-secondary text-white border-0" id="editRole" name="role"
+                                required>
+                                <option value="admin">Admin</option>
+                                <option value="creator">Creator</option>
+                                <option value="artist">Artist</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-control bg-secondary text-white border-0" id="editStatus" name="status"
+                                required>
+                                <option value="active">Active</option>
+                                <option value="pending">Pending</option>
+                                <option value="banned">Banned</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">User Rights</label>
+                        <div class="rights-checkboxes" id="editRights">
+                            <!-- Rights checkboxes will be populated here -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="updateUser()">Update User</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'admin/js/admin_users.js' %}"></script>
+{% endblock %}

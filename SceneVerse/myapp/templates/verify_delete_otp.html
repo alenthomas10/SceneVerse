@@ -1,0 +1,171 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Verify Account Deletion - SceneVerse{% endblock %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 80vh;">
+    <div class="card bg-dark text-white border-danger p-4 shadow-lg"
+        style="max-width: 400px; width: 100%; border-radius: 15px; border-width: 2px;">
+        <div class="text-center mb-4">
+            <div class="mb-3">
+                <i class="bi bi-shield-lock text-danger fs-1"></i>
+            </div>
+            <h3 class="fw-bold">Security Verification</h3>
+            <p class="text-muted small">For your security, please enter the 6-digit code sent to your email to proceed with account deletion.</p>
+        </div>
+
+        <form method="POST" class="needs-validation" novalidate id="otpForm">
+            {% csrf_token %}
+            <div class="d-flex justify-content-between mb-4 gap-2">
+                <input type="text" name="otp1"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required autofocus>
+                <input type="text" name="otp2"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp3"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp4"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp5"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+                <input type="text" name="otp6"
+                    class="form-control otp-input text-center bg-dark text-white border-secondary fs-4" maxlength="1"
+                    required>
+            </div>
+
+            <button type="submit" id="verifyBtn" class="btn btn-danger w-100 py-2 fw-bold">Verify Identity</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <p class="text-muted small mb-1">Didn't receive the code?</p>
+            <a href="/resend_delete_otp/" id="resendBtn" class="text-info text-decoration-none fw-bold me-2">Resend Code</a>
+            <span class="text-muted">|</span>
+            <a href="/settings/" class="text-muted text-decoration-none small ms-2">Cancel</a>
+        </div>
+    </div>
+</div>
+
+{% if show_final_modal %}
+<!-- Final Delete Modal -->
+<div class="modal fade" id="finalDeleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="finalDeleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-danger text-white shadow-lg">
+            <div class="modal-header border-bottom border-danger bg-danger bg-opacity-10">
+                <h5 class="modal-title text-danger fw-bold" id="finalDeleteModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i> PERMANENT DELETION
+                </h5>
+            </div>
+            <div class="modal-body py-4 text-center">
+                <div class="mb-4">
+                    <i class="bi bi-person-x-fill text-danger" style="font-size: 5rem;"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Goodbye?</h4>
+                <p class="text-white-50 px-3">This is your <strong>last chance</strong> to change your mind. Once confirmed, your profile, projects, messages, and all data will be erased from SceneVerse forever.</p>
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-25 small mt-3">
+                    <i class="bi bi-info-circle me-1"></i> Data recovery will not be possible.
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary bg-black bg-opacity-25">
+                <button type="button" class="btn btn-outline-secondary px-4" onclick="window.location.href='/settings/'">Keep My Account</button>
+                <form action="/confirm_delete/" method="POST" id="finalDeleteForm">
+                    {% csrf_token %}
+                    <button type="submit" id="finalDeleteBtn" class="btn btn-danger px-4 fw-bold">YES, DELETE FOREVER</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .otp-input:focus {
+        border-color: #dc3545 !important;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25) !important;
+    }
+</style>
+
+<script>
+    // Auto-focus next input script
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', function () {
+            if (this.value.length === 1) {
+                if (index < inputs.length - 1) inputs[index + 1].focus();
+            }
+        });
+        input.addEventListener('keydown', function (e) {
+            if (e.key === 'Backspace' && this.value.length === 0) {
+                if (index > 0) inputs[index - 1].focus();
+            }
+        });
+        // Allow only numbers
+        input.addEventListener('keypress', function(e) {
+            if (e.which < 48 || e.which > 57) {
+                e.preventDefault();
+            }
+        });
+    });
+
+    // Timer Logic
+    function startResendTimer(btnId, duration) {
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+
+        let timer = duration;
+        const originalText = btn.innerText;
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.5';
+
+        const interval = setInterval(() => {
+            btn.innerText = `Resend in ${timer}s`;
+            if (--timer < 0) {
+                clearInterval(interval);
+                btn.innerText = originalText;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+            }
+        }, 1000);
+    }
+
+    // Start timer on load
+    startResendTimer('resendBtn', 30);
+
+    // Double-click prevention
+    document.getElementById('otpForm').addEventListener('submit', function() {
+        const btn = document.getElementById('verifyBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+        }
+    });
+
+    // Disable resend on click
+    document.getElementById('resendBtn').addEventListener('click', function() {
+        this.style.pointerEvents = 'none';
+        this.style.opacity = '0.5';
+        this.innerText = 'Resending...';
+    });
+
+    // Final Modal Handling
+    {% if show_final_modal %}
+    document.addEventListener('DOMContentLoaded', function() {
+        var myModal = new bootstrap.Modal(document.getElementById('finalDeleteModal'));
+        myModal.show();
+        
+        // Double-click prevention for final delete
+        document.getElementById('finalDeleteForm').addEventListener('submit', function() {
+            const btn = document.getElementById('finalDeleteBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Deleting...';
+            }
+        });
+    });
+    {% endif %}
+</script>
+{% endblock %}

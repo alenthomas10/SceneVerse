@@ -1,0 +1,231 @@
+{% extends "base_modern.html" %}
+
+{% block content %}
+<style>
+    .password-wrapper {
+        position: relative;
+    }
+
+    .password-toggle {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.7);
+        transition: color 0.3s ease;
+        z-index: 10;
+    }
+
+    .password-toggle:hover {
+        color: #8b6b4c;
+    }
+</style>
+<div class="container-fluid py-4">
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card bg-dark border-secondary shadow">
+                <div class="card-header border-bottom border-secondary d-flex justify-content-between align-items-center py-3">
+                    <h5 class="card-title mb-0"><i class="bi bi-gear me-2 text-primary"></i> Settings</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-grid gap-3 mx-auto">
+                        
+                        <a href="/user_contact/" class="btn btn-outline-info text-start p-3 d-flex align-items-center rounded-3">
+                            <i class="bi bi-person-lines-fill fs-4 me-3"></i> 
+                            <div>
+                                <div class="fw-bold">Contact Details</div>
+                                <small class="text-white-50">View the administrator's contact information</small>
+                            </div>
+                        </a>
+
+                        {% if not request.session.admin %}
+                        <button type="button" class="btn btn-outline-primary text-start p-3 d-flex align-items-center rounded-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="bi bi-shield-lock fs-4 me-3"></i>
+                            <div>
+                                <div class="fw-bold">Change Password</div>
+                                <small class="text-white-50">Update your account password</small>
+                            </div>
+                        </button>
+                        {% endif %}
+
+                        <button type="button" class="btn btn-outline-warning text-start p-3 d-flex align-items-center rounded-3 mt-4" data-bs-toggle="modal" data-bs-target="#deactivateModal">
+                            <i class="bi bi-pause-circle fs-4 me-3"></i>
+                            <div>
+                                <div class="fw-bold">Deactivate Account</div>
+                                <small class="text-white-50">Temporarily disable your account</small>
+                            </div>
+                        </button>
+
+                        <button type="button" class="btn btn-outline-danger text-start p-3 d-flex align-items-center rounded-3" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                            <i class="bi bi-trash fs-4 me-3"></i>
+                            <div>
+                                <div class="fw-bold">Delete Account</div>
+                                <small class="text-white-50">Permanently delete your account and data</small>
+                            </div>
+                        </button>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Deactivate Modal -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-white">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="deactivateModalLabel"><i class="bi bi-exclamation-circle text-warning me-2"></i> Deactivate Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Do you want to deactivate your account?</p>
+                <p class="text-muted small">Your account will be disabled, and your public profile will be hidden. You will not be able to log in until an administrator unblocks your account.</p>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/deactivate_account/" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-warning">Yes, Deactivate</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-white">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-danger" id="deleteModalLabel"><i class="bi bi-exclamation-triangle me-2"></i> Delete Account</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you absolutely sure you want to permanently delete your account?</p>
+                <p class="text-danger small mb-0"><i class="bi bi-info-circle me-1"></i> This action cannot be undone. All your data, projects, and messages will be permanently removed.</p>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/delete_account/" method="POST" id="deleteAccountForm">
+                    {% csrf_token %}
+                    <button type="submit" id="deleteAccountBtn" class="btn btn-danger">Yes, Delete Forever</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% if not request.session.admin %}
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-white">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="changePasswordModalLabel"><i class="bi bi-shield-lock me-2 text-primary"></i> Change Password</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/change_password/" method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Old Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="old_password" name="old_password" class="form-control bg-black text-white border-secondary" required>
+                            <span class="password-toggle" onclick="togglePassword('old_password')">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">New Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="new_password" name="new_password" 
+                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,16}$"
+                                title="Password must be 8-16 characters and include uppercase, lowercase, numbers, and special characters (!@#$%^&*_=+-)"
+                                class="form-control bg-black text-white border-secondary" required>
+                            <span class="password-toggle" onclick="togglePassword('new_password')">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
+                        <div class="form-text text-white-50 small mt-1">
+                            8-16 chars, mix of A-z, 0-9 & symbols.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Confirm New Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" id="confirm_password" name="confirm_password" 
+                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,16}$"
+                                class="form-control bg-black text-white border-secondary" required>
+                            <span class="password-toggle" onclick="togglePassword('confirm_password')">
+                                <i class="bi bi-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-end mt-2">
+                        <a href="#" class="text-primary small text-decoration-none" data-bs-toggle="modal" data-bs-target="#securityLogoutModal">
+                            <i class="bi bi-question-circle me-1"></i> I forgot my old password
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-secondary">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Security Logout Modal -->
+<div class="modal fade" id="securityLogoutModal" tabindex="-1" aria-labelledby="securityLogoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-white">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title" id="securityLogoutModalLabel"><i class="bi bi-shield-exclamation text-warning me-2"></i> Security Logout</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>For your security, you must log out before resetting your password if you've forgotten the old one.</p>
+                <p class="text-muted small">You will be redirected to the forgot password page after logging out.</p>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="/logout/?next=/forgot_password/" class="btn btn-warning">Logout and Reset</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+    function togglePassword(inputId) {
+        const passwordInput = document.getElementById(inputId);
+        const toggleIcon = passwordInput.parentNode.querySelector('.password-toggle i');
+
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('bi-eye');
+            toggleIcon.classList.add('bi-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('bi-eye-slash');
+            toggleIcon.classList.add('bi-eye');
+        }
+    }
+
+    // Account Deletion Double-click Prevention
+    const deleteForm = document.getElementById('deleteAccountForm');
+    if (deleteForm) {
+        deleteForm.addEventListener('submit', function() {
+            const btn = document.getElementById('deleteAccountBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
+            }
+        });
+    }
+</script>
+{% endblock %}

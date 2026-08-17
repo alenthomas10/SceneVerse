@@ -1,0 +1,319 @@
+/* Application Detail Modal Styles - FIXED */
+.application-detail {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.applicant-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.applicant-avatar {
+    flex-shrink: 0;
+}
+
+.applicant-avatar img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+}
+
+.applicant-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.applicant-info h4 {
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.applicant-meta {
+    font-size: 0.9rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.applicant-meta span {
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.application-status-section {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.status-badge {
+    padding: 0.375rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.status-new {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+/* Status Actions */
+.status-actions {
+    background-color: #f8f9fa !important;
+    border-radius: 0.5rem;
+    padding: 1rem !important;
+    margin-bottom: 1.5rem;
+}
+
+.status-actions .btn-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.status-actions .btn-group .btn {
+    flex: 1;
+    min-width: 120px;
+    white-space: nowrap;
+}
+
+/* Section Layout */
+.section-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    color: #495057;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.section-content {
+    font-size: 0.9rem;
+}
+
+/* Key Details List */
+.key-details-list {
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+}
+
+.key-details-list .detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.key-details-list .detail-item:last-child {
+    border-bottom: none;
+}
+
+.key-details-list .text-muted {
+    font-size: 0.85rem;
+}
+
+.key-details-list .fw-medium {
+    font-weight: 500;
+    text-align: right;
+}
+
+/* Skills Tags */
+.skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skills-tags .badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid #dee2e6;
+}
+
+/* Materials Grid */
+.materials-grid .material-item {
+    transition: background-color 0.2s ease;
+    border: 1px solid #dee2e6 !important;
+}
+
+.materials-grid .material-item:hover {
+    background-color: #f8f9fa;
+    border-color: #6c757d !important;
+}
+
+/* Projects List */
+.projects-list .project-item {
+    transition: background-color 0.2s ease;
+    border: 1px solid #dee2e6 !important;
+}
+
+.projects-list .project-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Cover Letter */
+.cover-letter-content {
+    background: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+/* Form Controls */
+.section-content textarea.form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    resize: vertical;
+}
+
+.section-content textarea.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Button Styles */
+.custom-btn, .custom-border-btn {
+    border-radius: 0.375rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.custom-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+}
+
+.custom-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.custom-border-btn {
+    background: transparent;
+    border: 2px solid #667eea;
+    color: #667eea;
+}
+
+.custom-border-btn:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* Responsive adjustments for modal */
+@media (max-width: 768px) {
+    .applicant-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .applicant-avatar {
+        margin: 0 auto;
+    }
+
+    .applicant-meta {
+        justify-content: center;
+    }
+
+    .application-status-section {
+        text-align: center !important;
+        width: 100%;
+    }
+
+    .status-actions .row > div {
+        margin-bottom: 1rem;
+    }
+
+    .status-actions .text-md-end {
+        text-align: left !important;
+    }
+
+    .status-actions .btn-group {
+        justify-content: center;
+    }
+
+    .key-details-list .detail-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .key-details-list .fw-medium {
+        text-align: left;
+    }
+}
+
+/* Fix for Bootstrap column alignment */
+.row {
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+}
+
+.col-md-8, .col-md-4 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* Ensure proper spacing */
+.mb-4 {
+    margin-bottom: 1.5rem !important;
+}
+
+.mb-2 {
+    margin-bottom: 0.5rem !important;
+}
+
+.mt-4 {
+    margin-top: 1.5rem !important;
+}
+
+/* Fix for text alignment */
+.text-end {
+    text-align: right !important;
+}
+
+.text-md-end {
+    text-align: right !important;
+}
+
+@media (max-width: 768px) {
+    .text-md-end {
+        text-align: left !important;
+    }
+}
+
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.status-short-listed {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-reviewed {
+    background-color: #e2e3e5;
+    color: #6c757d;
+}

@@ -1,0 +1,1042 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Artist Dashboard - SceneVerse{% endblock %}
+{% block back_button %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Specific overrides for Artist Dashboard */
+    .stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-color);
+    }
+
+    .project-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .project-card:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-5px);
+    }
+
+    .project-img {
+        height: 160px;
+        background: #333;
+        position: relative;
+    }
+
+    .project-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .project-body {
+        padding: 1.2rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .project-title {
+        color: var(--text-color);
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .project-meta {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            {% for i in logartist %}
+            <h2 class="fw-bold">Hello, {{i.first_name}} 🎨</h2>
+            <p class="text-muted">Ready to find your next big role?</p>
+            {% endfor %}
+        </div>
+        <div class="d-flex gap-3">
+            <div class="search-wrapper">
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-light"><i class="bi bi-search"></i></span>
+                    <input type="text" id="artistSearchInput" class="form-control border-secondary text-light"
+                        placeholder="Search users...">
+                </div>
+                <div id="artistSearchResults" class="search-dropdown d-none"></div>
+            </div>
+            <button class="btn btn-outline-secondary position-relative" id="notificationBtn"
+                onclick="window.location.href='/chat/'">
+                <i class="bi bi-bell"></i>
+                <span id="chatNotificationBadge"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {% if unread_count == 0 %}d-none{% endif %}">
+                    {{ unread_count }}
+                </span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Stats Row -->
+    <div class="row mb-5">
+        <div class="col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="bg-primary bg-opacity-25 p-3 rounded-3 text-primary me-3">
+                    <i class="bi bi-send fs-4"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold">{{ stats.applications_sent }}</h3>
+                    <p class="text-muted mb-0">Applications Sent</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="bg-success bg-opacity-25 p-3 rounded-3 text-success me-3">
+                    <i class="bi bi-check-circle fs-4"></i>
+                </div>
+                <div>
+                    <h3 class="mb-0 fw-bold">{{ stats.shortlisted }}</h3>
+                    <p class="text-muted mb-0">Shortlisted</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feed / Content Area -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold">Recommended for You</h4>
+                <a href="/findprojects/" class="text-primary text-decoration-none">View All</a>
+            </div>
+
+            <!-- Feed Posts -->
+            {% for post in all_artist_posts %}
+            <div class="post-card mb-4"
+                style="background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px;">
+                <!-- Header -->
+                <div class="post-header d-flex align-items-center mb-3">
+                    <a href="{% url 'view_artist_profile' post.post.added_by.id %}">
+                        <img src="{% if post.post.added_by.details and post.post.added_by.details.avatarphoto %}{{ post.post.added_by.details.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{post.post.added_by.first_name}}{% endif %}"
+                            class="rounded-circle me-3" width="45" height="45"
+                            style="object-fit:cover; border: 2px solid var(--border-color);"
+                            onerror="this.src='https://ui-avatars.com/api/?name={{post.post.added_by.first_name}}'">
+                    </a>
+                    <div>
+                        <h6 class="mb-0 fw-bold">
+                            <a href="{% url 'view_artist_profile' post.post.added_by.id %}"
+                                class="text-white text-decoration-none">
+                                {{ post.post.added_by.first_name }} {{ post.post.added_by.last_name }}
+                            </a>
+                        </h6>
+                        <small class="text-muted">
+                            {{ post.post.added_by.details.title }} • {{ post.post.created_at|timesince }} ago
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <p class="mb-3">{{ post.post.caption }}</p>
+
+                <!-- Media -->
+                {% if post.post.all_media %}
+                <div class="post-media-container mb-3">
+                    <div id="feedCarousel{{ post.post.id }}" class="carousel slide" data-bs-interval="false">
+                        <div class="carousel-inner">
+                            {% for media_item in post.post.all_media %}
+                            <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                {% if media_item.image %}
+                                <img src="{{ media_item.image.url }}" class="d-block w-100 rounded" alt="Post Image"
+                                    style="max-height: 500px; object-fit: contain; background: #000;">
+                                {% elif media_item.video %}
+                                <div class="video-wrapper">
+                                    <video class="d-block w-100 feed-video"
+                                        style="max-height: 500px; object-fit: contain;"
+                                        data-start="{{ media_item.start_time|default:0 }}"
+                                        data-end="{{ media_item.end_time|default:'' }}">
+                                        <source src="{{ media_item.video.url }}" type="video/mp4">
+                                    </video>
+                                    <div class="custom-controls">
+                                        <button class="btn-control play-btn">
+                                            <i class="bi bi-play-fill fs-4"></i>
+                                        </button>
+                                        <button class="btn-control mute-btn ms-2">
+                                            <i class="bi bi-volume-up"></i>
+                                        </button>
+                                        <!-- <button class="btn-control fullscreen-btn">
+                                            <i class="bi bi-fullscreen"></i>
+                                        </button> -->
+                                    </div>
+                                    <div class="play-overlay position-absolute top-50 start-50 translate-middle pointer-events-none"
+                                        style="display: none;">
+                                        <i class="bi bi-play-circle-fill text-white fs-1 opacity-50"></i>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if post.post.all_media|length > 1 %}
+                        <button class="carousel-control-prev" type="button"
+                            data-bs-target="#feedCarousel{{ post.post.id }}" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon"></span>
+                        </button>
+                        <button class="carousel-control-next" type="button"
+                            data-bs-target="#feedCarousel{{ post.post.id }}" data-bs-slide="next">
+                            <span class="carousel-control-next-icon"></span>
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Action Bar -->
+                <div class="action-bar border-top border-secondary pt-3 d-flex align-items-center gap-3">
+                    <form method="POST" action="/artistlike/" class="d-inline like-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                        <button type="submit"
+                            class="btn btn-link p-0 text-decoration-none {% if post.post.id in creator_likes %}text-danger{% else %}text-muted{% endif %}"
+                            style="font-size: 1.2rem;">
+                            <i class="bi bi-heart{% if post.post.id in creator_likes %}-fill{% endif %}"></i>
+                        </button>
+                    </form>
+                    <button class="btn btn-link p-0 text-muted" data-bs-toggle="collapse"
+                        data-bs-target="#comments{{ post.post.id }}" style="font-size: 1.2rem;">
+                        <i class="bi bi-chat"></i>
+                    </button>
+    
+                </div>
+
+                <!-- Comments Section -->
+                <div class="collapse mt-3" id="comments{{ post.post.id }}">
+                    <div class="p-2" style="background: rgba(0, 0, 0, 0.2); border-radius: 12px;">
+                        {% for comment in post.com %}
+                        <div class="comment-group mb-3">
+                            <div class="d-flex align-items-start" id="comment-{{ comment.id }}">
+                                <a href="{% url 'view_artist_profile' comment.commented_by.id %}">
+                                    <img src="{% if comment.commented_by.artistdetails_set.first and comment.commented_by.artistdetails_set.first.avatarphoto %}{{ comment.commented_by.artistdetails_set.first.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{comment.commented_by.first_name}}{% endif %}"
+                                        class="rounded-circle me-2" width="30" height="30" style="object-fit:cover;">
+                                </a>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <a href="{% url 'view_artist_profile' comment.commented_by.id %}"
+                                                class="fw-bold text-decoration-none text-light"
+                                                style="font-size: 0.9rem;">
+                                                {{ comment.commented_by.first_name }} {{ comment.commented_by.last_name }}
+                                            </a>
+                                            <p class="mb-1 text-white-50 small">{{ comment.comment }}</p>
+                                            <a href="#" class="btn-reply-comment text-muted small text-decoration-none"
+                                                data-comment-id="{{ comment.id }}">Reply</a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Replies -->
+                                    <div class="replies-container ms-4 mt-2 ps-2 border-start border-secondary"
+                                        id="replies-{{ comment.id }}">
+                                        {% for reply in comment.replies_list %}
+                                        <div class="d-flex align-items-start mt-2" id="comment-{{ reply.id }}">
+                                            <img src="{% if reply.commented_by.artistdetails_set.first and reply.commented_by.artistdetails_set.first.avatarphoto %}{{ reply.commented_by.artistdetails_set.first.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{reply.commented_by.first_name}}{% endif %}"
+                                                class="rounded-circle me-2" width="20" height="20"
+                                                style="object-fit:cover;">
+                                            <div>
+                                                <span class="fw-bold text-light small">{{ reply.commented_by.first_name }} {{ reply.commented_by.last_name }}</span>
+                                                <span class="text-white-50 small ms-1">{{ reply.comment }}</span>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+
+                                    <!-- Reply Form -->
+                                    <div class="reply-form-container mt-2" id="reply-form-{{ comment.id }}"
+                                        style="display: none;">
+                                        <form method="POST" action="/artistcomment/" class="text-end reply-form">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                                            <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                                            <textarea name="comment"
+                                                class="form-control form-control-sm bg-dark text-white border-secondary mb-2"
+                                                rows="1" placeholder="Write a reply..." required></textarea>
+                                            <button type="submit" class="btn btn-sm btn-primary">Reply</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Post Comment Form -->
+                        <form method="POST" action="/artistcomment/" class="mt-2 text-end comment-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.post.id }}">
+                            <textarea name="comment" class="form-control bg-dark text-white border-secondary mb-2"
+                                rows="1" placeholder="Write a comment..." required></textarea>
+                            <button type="submit" class="btn btn-sm btn-primary rounded-pill px-4">Post</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <i class="bi bi-camera-reels display-1 text-muted mb-3"></i>
+                <h4 class="text-muted">No posts yet</h4>
+                <p class="text-muted">Start following artists or create your own post!</p>
+            </div>
+            {% endfor %}
+
+            <div class="d-flex justify-content-between align-items-center mb-3 mt-4">
+                <h4 class="fw-bold">Recommended Projects</h4>
+                <a href="/findprojects/" class="text-primary text-decoration-none">View All</a>
+            </div>
+
+            <div class="row">
+                {% for project in recommended_projects %}
+                <div class="col-md-6 mb-4">
+                    <div class="project-card">
+                        <!-- <div class="project-img">
+                            <span class="badge bg-danger position-absolute top-0 end-0 m-3">{{ project.role_category
+                                }}</span>
+                            {% if project.project_title.added_by.artistdetails_set.first.coverphoto %}
+                            <img src="{{ project.project_title.added_by.artistdetails_set.first.coverphoto.url }}"
+                                alt="Project Cover">
+                            {% else %}
+                            <div class="w-100 h-100 bg-secondary d-flex align-items-center justify-content-center">
+                                <i class="bi bi-film display-4 text-white-50"></i>
+                            </div>
+                            {% endif %}
+                        </div> -->
+                        <div class="project-body">
+                            <h5 class="project-title">{{ project.role_title }}</h5>
+                            <p class="project-meta">{{ project.project_title.project_title }} • {{ project.deadline|date:"M d, Y" }}</p>
+                            <p class="small text-muted mb-3 text-truncate">{{ project.role_description }}</p>
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                                <small class="text-white"><i class="bi bi-geo-alt me-1"></i> {{ project.project_title.project_type }}</small>
+                                <a href="/castingcalls/" class="btn btn-sm btn-outline-primary">View/Apply</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-4 text-muted">
+                    <p>No active casting calls found at the moment.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+        </div>
+
+        <!-- Sidebar Widgets -->
+        <div class="col-lg-4">
+            <!-- Create Post Widget -->
+            <div class="card border-0 bg-transparent mb-4">
+                <button class="btn btn-primary w-100 py-3 fw-bold shadow-sm" data-bs-toggle="modal"
+                    data-bs-target="#createPostModal">
+                    <i class="bi bi-plus-lg me-2"></i> Create New Post
+                </button>
+            </div>
+
+            <!-- <div class="card mb-4">
+                <div class="card-header bg-transparent border-bottom border-secondary py-3">
+                    <h5 class="fw-bold mb-0">Your Skills</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for i in logartist %}
+                        <span class="badge bg-secondary">{{i.skill1}}</span>
+                        <span class="badge bg-secondary">{{i.skill2}}</span>
+                        <span class="badge bg-secondary">{{i.skill3}}</span>
+                        {% endfor %}
+                        <span class="badge border border-secondary text-muted">+ Add</span>
+                    </div>
+                </div>
+            </div> -->
+        </div>
+    </div>
+</div>
+
+<!-- Create Post Modal with Advanced Editing -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+<style>
+    .media-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .media-preview-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        background: #000;
+    }
+
+    .media-preview-item img,
+    .media-preview-item video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-actions {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .preview-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .preview-btn:hover {
+        background: var(--primary-color);
+    }
+
+    .post-modal-content {
+        background: #1a1a1a;
+        color: white;
+    }
+
+    .upload-area {
+        border: 2px dashed var(--border-color);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+
+    .upload-area:hover {
+        border-color: var(--primary-color);
+        background: rgba(139, 107, 76, 0.05);
+    }
+</style>
+
+<div class="modal fade" id="createPostModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content post-modal-content">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title fw-bold">Create Post</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createPostForm" action="" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="d-flex mb-3">
+                        <img src="{% if request.session.aid %}{% for i in logartist %}{% if i.artistdetails_set.first.avatarphoto %}{{ i.artistdetails_set.first.avatarphoto.url }}{% else %}https://ui-avatars.com/api/?name={{i.first_name}}{% endif %}{% endfor %}{% else %}https://ui-avatars.com/api/?name=User{% endif %}"
+                            class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
+                        <textarea name="caption" class="form-control bg-transparent text-white border-0 fs-5" rows="3"
+                            placeholder="What's on your creative mind?" style="resize: none;"></textarea>
+                    </div>
+
+                    <!-- Hidden Input -->
+                    <input type="file" id="mediaInput" name="media" multiple accept="image/*,video/*" class="d-none">
+
+                    <div class="upload-area mb-3" onclick="document.getElementById('mediaInput').click()">
+                        <div class="d-flex flex-column align-items-center text-muted">
+                            <i class="bi bi-images fs-2 mb-2"></i>
+                            <span>Add Photos or Videos</span>
+                            <small>or drag and drop</small>
+                        </div>
+                    </div>
+
+                    <div id="previewGrid" class="media-preview-grid"></div>
+
+                    <div class="modal-footer px-0 pb-0 border-top border-secondary mt-3 pt-3">
+                        <div class="d-flex align-items-center gap-3 me-auto">
+                            <button type="button" class="btn btn-link text-success p-0"
+                                onclick="document.getElementById('mediaInput').click()"><i
+                                    class="bi bi-image fs-4"></i></button>
+                            <button type="button" class="btn btn-link text-info p-0"
+                                onclick="document.getElementById('mediaInput').click()"><i
+                                    class="bi bi-camera-video fs-4"></i></button>
+                            <button type="button" class="btn btn-link text-warning p-0"><i
+                                    class="bi bi-emoji-smile fs-4"></i></button>
+                        </div>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold rounded-pill">Post</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Editor Modal -->
+<div class="modal fade" id="imageEditorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content post-modal-content">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Image</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-dark text-center" style="height: 500px;">
+                <img id="editorImage" src="" style="max-width: 100%; max-height: 100%;">
+            </div>
+            <div class="modal-footer border-secondary justify-content-between">
+                <div>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperRotate(-90)"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperRotate(90)"><i class="bi bi-arrow-clockwise"></i></button>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperReset()"><i class="bi bi-arrow-repeat"></i> Reset</button>
+                </div>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Editor Modal -->
+<div class="modal fade" id="videoEditorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content post-modal-content">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Video</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3 bg-dark text-center">
+                <video id="editorVideo" controls class="w-100 rounded" style="max-height: 400px;"></video>
+
+                <div class="mt-3 px-3">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Start: <span id="lblStart">0.0</span>s</span>
+                        <span>End: <span id="lblEnd">--</span>s</span>
+                    </div>
+                    <div class="progress bg-secondary" style="height: 6px;">
+                        <div id="trimProgress" class="progress-bar bg-primary" style="width: 0%; margin-left: 0%;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setTrimStart()">Set Start
+                        Current</button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="previewLoop()">Preview
+                        Loop</button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setTrimEnd()">Set End
+                        Current</button>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearTrim()">Clear
+                        Trim</button>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-primary w-100" id="saveVideoEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize User Search
+        initUserSearch('artistSearchInput', 'artistSearchResults');
+        const mediaInput = document.getElementById('mediaInput');
+        const previewGrid = document.getElementById('previewGrid');
+        const form = document.getElementById('createPostForm');
+
+        // Ensure elements exist
+        if (!mediaInput || !previewGrid || !form) {
+            console.error("Required elements not found");
+            return;
+        }
+
+        // Core file storage 
+        let selectedFiles = [];
+
+        // Image Editor Vars
+        let cropper;
+        let editorModal;
+        const editorImage = document.getElementById('editorImage');
+        let currentEditIndex = null;
+
+        // Initialize Modal safely
+        if (document.getElementById('imageEditorModal')) {
+            editorModal = new bootstrap.Modal(document.getElementById('imageEditorModal'));
+        }
+
+        mediaInput.addEventListener('change', function (e) {
+            if (e.target.files && e.target.files.length > 0) {
+                const newFiles = Array.from(e.target.files);
+                selectedFiles = selectedFiles.concat(newFiles);
+                renderPreviews();
+
+                // Clear input value so selecting same file works again
+                this.value = '';
+            }
+        });
+
+        window.renderPreviews = function () {
+            previewGrid.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const isImage = file.type.startsWith('image/');
+                const isVideo = file.type.startsWith('video/');
+
+                const div = document.createElement('div');
+                div.className = 'media-preview-item';
+
+                const url = URL.createObjectURL(file);
+
+                if (isImage) {
+                    div.innerHTML = `<img src="${url}">`;
+                } else if (isVideo) {
+                    // Create video element safely
+                    const video = document.createElement('video');
+                    video.src = url;
+                    video.preload = 'metadata';
+                    video.style.width = '100%';
+                    video.style.height = '100%';
+                    video.style.objectFit = 'cover';
+                    // Video time update to capture frame
+                    video.onloadeddata = function () {
+                        this.currentTime = 0.5;
+                    };
+                    div.appendChild(video);
+                }
+
+                // Actions
+                const actions = document.createElement('div');
+                actions.className = 'preview-actions';
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'preview-btn';
+                editBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+                editBtn.type = 'button';
+
+                if (isImage) {
+                    editBtn.onclick = () => openEditor(index);
+                } else {
+                    editBtn.onclick = () => openVideoEditor(index);
+                }
+                actions.appendChild(editBtn);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'preview-btn bg-danger';
+                removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+                removeBtn.type = 'button';
+                removeBtn.onclick = () => removeFile(index);
+                actions.appendChild(removeBtn);
+
+                div.appendChild(actions);
+                previewGrid.appendChild(div);
+            });
+
+            updateInputFiles();
+        };
+
+        window.removeFile = function (index) {
+            const file = selectedFiles[index];
+            if (trimData[file.name]) delete trimData[file.name];
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+        };
+
+        // --- Video Editor ---
+        let trimData = {};
+        let currentVideoStart = 0;
+        let currentVideoEnd = null;
+        let videoModal;
+        const editorVideo = document.getElementById('editorVideo');
+
+        // Init modal if exists
+        if (document.getElementById('videoEditorModal')) {
+            videoModal = new bootstrap.Modal(document.getElementById('videoEditorModal'));
+        }
+
+        // Add hidden input if not exists
+        if (!form.querySelector('input[name="trim_data"]')) {
+            const trimInput = document.createElement('input');
+            trimInput.type = 'hidden';
+            trimInput.name = 'trim_data';
+            form.appendChild(trimInput);
+
+            // Update on submit
+            form.addEventListener('submit', function () {
+                trimInput.value = JSON.stringify(trimData);
+            });
+        }
+
+        window.openVideoEditor = function (index) {
+            currentEditIndex = index;
+            const file = selectedFiles[index];
+            const url = URL.createObjectURL(file);
+            editorVideo.src = url;
+
+            // Load existing trim
+            const meta = trimData[file.name] || {};
+            currentVideoStart = meta.start || 0;
+            currentVideoEnd = meta.end || null;
+
+            editorVideo.currentTime = currentVideoStart;
+            updateTrimUI();
+
+            videoModal.show();
+        };
+
+        window.setTrimStart = function () {
+            currentVideoStart = editorVideo.currentTime;
+            if (currentVideoEnd !== null && currentVideoStart >= currentVideoEnd) {
+                currentVideoEnd = null; // Reset end if invalid
+            }
+            updateTrimUI();
+        };
+
+        window.setTrimEnd = function () {
+            currentVideoEnd = editorVideo.currentTime;
+            if (currentVideoEnd <= currentVideoStart) {
+                alert("End time must be after start time");
+                currentVideoEnd = null;
+            }
+            updateTrimUI();
+        };
+
+        window.clearTrim = function () {
+            currentVideoStart = 0;
+            currentVideoEnd = null;
+            updateTrimUI();
+        };
+
+        window.previewLoop = function () {
+            editorVideo.currentTime = currentVideoStart;
+            editorVideo.play();
+
+            const checkStop = setInterval(() => {
+                if (editorVideo.paused) {
+                    clearInterval(checkStop);
+                    return;
+                }
+                const end = currentVideoEnd || editorVideo.duration;
+                if (editorVideo.currentTime >= end) {
+                    editorVideo.pause();
+                    editorVideo.currentTime = currentVideoStart;
+                    clearInterval(checkStop);
+                }
+            }, 100);
+        };
+
+        function updateTrimUI() {
+            document.getElementById('lblStart').innerText = currentVideoStart.toFixed(1);
+            document.getElementById('lblEnd').innerText = currentVideoEnd ? currentVideoEnd.toFixed(1) : (editorVideo.duration ? editorVideo.duration.toFixed(1) : '--');
+        }
+
+        editorVideo.onloadedmetadata = function () {
+            updateTrimUI();
+        };
+
+        document.getElementById('saveVideoEditBtn').addEventListener('click', function () {
+            const file = selectedFiles[currentEditIndex];
+            trimData[file.name] = {
+                start: currentVideoStart,
+                end: currentVideoEnd
+            };
+            videoModal.hide();
+        });
+
+        // --- Custom Video Player Logic ---
+        // --- Custom Video Player Logic ---
+        document.querySelectorAll('.video-wrapper').forEach(wrapper => {
+            const video = wrapper.querySelector('video');
+            const playBtn = wrapper.querySelector('.play-btn');
+            const muteBtn = wrapper.querySelector('.mute-btn');
+
+            // Parse Metadata
+            let start = parseFloat(video.dataset.start) || 0;
+            let endStr = video.dataset.end;
+            let end = (endStr && endStr !== "None") ? parseFloat(endStr) : null;
+
+            // Toggle Play
+            const togglePlay = () => {
+                if (video.paused) {
+                    // PAUSE ALL OTHER VIDEOS
+                    document.querySelectorAll('video').forEach(otherVideo => {
+                        if (otherVideo !== video) {
+                            otherVideo.pause();
+                            const otherWrapper = otherVideo.closest('.video-wrapper');
+                            if (otherWrapper) {
+                                const otherPlayBtn = otherWrapper.querySelector('.play-btn');
+                                if (otherPlayBtn) otherPlayBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+                            }
+                        }
+                    });
+
+                    // Reset to start if finished or before start
+                    if (end && video.currentTime >= end) {
+                        video.currentTime = start;
+                    } else if (video.currentTime < start) {
+                        video.currentTime = start;
+                    }
+
+                    video.play();
+                    playBtn.innerHTML = '<i class="bi bi-pause-fill fs-4"></i>';
+                } else {
+                    video.pause();
+                    playBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+                }
+            };
+
+            // LIGHTWEIGHT END CHECK ONLY
+            const checkEnd = () => {
+                const safeEnd = end || video.duration;
+                if (!safeEnd) return;
+
+                if (video.currentTime >= safeEnd) {
+                    video.pause();
+                    video.currentTime = start;
+                    playBtn.innerHTML = '<i class="bi bi-play-fill fs-4"></i>';
+                }
+            };
+
+            // Event Listeners
+            playBtn.addEventListener('click', togglePlay);
+            video.addEventListener('click', togglePlay);
+
+            video.addEventListener('timeupdate', checkEnd);
+
+            video.addEventListener('loadedmetadata', () => {
+                if (video.currentTime < start) video.currentTime = start;
+            });
+
+            if (video.readyState >= 1) {
+                if (video.currentTime < start) video.currentTime = start;
+            }
+
+            // Mute
+            if (muteBtn) {
+                muteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    video.muted = !video.muted;
+                    muteBtn.innerHTML = video.muted ? '<i class="bi bi-volume-mute"></i>' : '<i class="bi bi-volume-up"></i>';
+                });
+            }
+
+            // Hover to Play Logic
+            wrapper.addEventListener('mouseenter', () => {
+                if (video.paused) togglePlay();
+            });
+
+            wrapper.addEventListener('mouseleave', () => {
+                if (!video.paused) togglePlay();
+            });
+        });
+
+        window.openEditor = function (index) {
+            currentEditIndex = index;
+            const file = selectedFiles[index];
+            const url = URL.createObjectURL(file);
+
+            editorImage.src = url;
+
+            if (cropper) cropper.destroy();
+
+            editorModal.show();
+
+            const modalEl = document.getElementById('imageEditorModal');
+            modalEl.addEventListener('shown.bs.modal', function () {
+                if (cropper) cropper.destroy(); // Double check
+                cropper = new Cropper(editorImage, {
+                    viewMode: 2,
+                    autoCropArea: 1,
+                    aspectRatio: NaN,
+                });
+            }, { once: true });
+        };
+
+        const saveEditBtn = document.getElementById('saveEditBtn');
+        if (saveEditBtn) {
+            saveEditBtn.addEventListener('click', function () {
+                if (!cropper) return;
+
+                cropper.getCroppedCanvas().toBlob((blob) => {
+                    const originalFile = selectedFiles[currentEditIndex];
+                    const newFile = new File([blob], originalFile.name, { type: originalFile.type, lastModified: Date.now() });
+
+                    selectedFiles[currentEditIndex] = newFile;
+                    renderPreviews();
+                    editorModal.hide();
+                }, selectedFiles[currentEditIndex].type);
+            });
+        }
+
+        function updateInputFiles() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            mediaInput.files = dt.files;
+        }
+
+        form.addEventListener('submit', function (e) {
+            updateInputFiles();
+            if (selectedFiles.length === 0 && !this.caption.value.trim()) {
+                e.preventDefault();
+                alert("Please add a caption or media.");
+            }
+        });
+
+        // --- AJAX Like Handler ---
+        document.body.addEventListener('submit', function (e) {
+            if (e.target.classList.contains('like-form')) {
+                e.preventDefault();
+                const form = e.target;
+                const btn = form.querySelector('button');
+                const icon = btn.querySelector('i');
+                const formData = new FormData(form);
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (data.is_liked) {
+                                btn.classList.remove('text-muted');
+                                btn.classList.add('text-danger');
+                                icon.classList.remove('bi-heart');
+                                icon.classList.add('bi-heart-fill');
+                            } else {
+                                btn.classList.add('text-muted');
+                                btn.classList.remove('text-danger');
+                                icon.classList.add('bi-heart');
+                                icon.classList.remove('bi-heart-fill');
+                            }
+                        }
+                    })
+                    .catch(err => console.error('Like error:', err));
+            }
+
+            // --- AJAX Comment/Reply Handler ---
+            if (e.target.classList.contains('comment-form') || e.target.classList.contains('reply-form')) {
+                e.preventDefault();
+                const form = e.target;
+                const formData = new FormData(form);
+                const isReply = e.target.classList.contains('reply-form');
+                const parentId = formData.get('parent_id');
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerText;
+
+                submitBtn.disabled = true;
+                submitBtn.innerText = "Posting...";
+
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = originalText;
+
+                        if (data.success) {
+                            form.reset();
+                            // Hide reply form if it was a reply
+                            if (isReply) {
+                                const replyContainer = document.getElementById(`reply-form-${parentId}`);
+                                if (replyContainer) replyContainer.style.display = 'none';
+
+                                // Append to replies list
+                                const repliesList = document.getElementById(`replies-${parentId}`);
+                                if (repliesList) {
+                                    // Create temp wrapper (view returns partial HTML)
+                                    const temp = document.createElement('div');
+                                    temp.innerHTML = data.comment_html;
+                                    // The backend returns a full div, we append it
+                                    repliesList.appendChild(temp.firstElementChild);
+                                }
+                            } else {
+                                // Append to main list
+                                // Find the container: it's the parent of the form (likely .p-2)
+                                // or we can select it more robustly.
+                                // The form is inside .p-2. We want to insert BEFORE the form? 
+                                // Or just append to a dedicated list?
+                                // Currently comments are in `comment-group mb-3`.
+                                // Let's insert it before the comment form.
+                                const temp = document.createElement('div');
+                                temp.innerHTML = data.comment_html;
+                                form.insertAdjacentElement('beforebegin', temp.firstElementChild);
+                            }
+                        } else {
+                            alert(data.error || "Error posting comment");
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Comment error:', err);
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = originalText;
+                    });
+            }
+        });
+
+        // Initialize Reply Button Toggles (Delegation)
+        document.body.addEventListener('click', function (e) {
+            if (e.target.classList.contains('btn-reply-comment') || e.target.closest('.btn-reply-comment')) {
+                e.preventDefault();
+                const link = e.target.classList.contains('btn-reply-comment') ? e.target : e.target.closest('.btn-reply-comment');
+                const commentId = link.getAttribute('data-comment-id');
+                const replyForm = document.getElementById(`reply-form-${commentId}`);
+                if (replyForm) {
+                    replyForm.style.display = replyForm.style.display === 'none' ? 'block' : 'none';
+                }
+            }
+        });
+
+        // Attach cropper rotate functions globally for onclick access
+        window.cropperRotate = function (deg) {
+            if (cropper) cropper.rotate(deg);
+        };
+        window.cropperReset = function () {
+            if (cropper) cropper.reset();
+        };
+    });
+</script>
+
+{% endblock %}

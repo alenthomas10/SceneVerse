@@ -1,0 +1,881 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}Creator Dashboard - SceneVerse{% endblock %}
+{% block back_button %}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 15px;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+        border-color: var(--primary-color);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: white;
+    }
+
+    .bg-primary {
+        background-color: var(--primary-color) !important;
+    }
+
+    .bg-success {
+        background-color: #198754 !important;
+    }
+
+    .bg-warning {
+        background-color: #ffc107 !important;
+    }
+
+    .bg-info {
+        background-color: #0dcaf0 !important;
+    }
+
+    .stat-info h3 {
+        margin: 0;
+        font-weight: 700;
+        font-size: 1.5rem;
+        color: var(--text-color);
+    }
+
+    .stat-info p {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .project-item {
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        border: 1px solid var(--border-color);
+    }
+
+    .project-badge {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        background: rgba(139, 107, 76, 0.2);
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .project-info h5 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text-color);
+    }
+
+    .project-meta {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        margin: 2px 0 5px;
+    }
+
+    .artist-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .artist-avatar img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    /* Media Upload & Preview Styles */
+    .media-preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+    }
+
+    .media-preview-item {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        background: #000;
+    }
+
+    .media-preview-item img,
+    .media-preview-item video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .preview-actions {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .preview-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .preview-btn:hover {
+        background: var(--primary-color);
+    }
+
+    .upload-area {
+        border: 2px dashed var(--border-color);
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .upload-area:hover {
+        border-color: var(--primary-color);
+        background: rgba(139, 107, 76, 0.05);
+    }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+    <!-- Header -->
+    <header class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            {% for i in logcreator %}
+            <h2 class="fw-bold">Welcome back, {{i.first_name}} 👋</h2>
+            <p class="text-muted">Here's what's happening with your projects today.</p>
+            {% endfor %}
+        </div>
+        <div class="d-flex gap-3">
+            <div class="search-wrapper">
+                <div class="input-group">
+                    <span class="input-group-text bg-dark border-secondary text-light"><i class="bi bi-search"></i></span>
+                    <input type="text" id="userSearchInput" class="form-control border-secondary text-light"
+                        placeholder="Search users...">
+                </div>
+                <div id="userSearchResults" class="search-dropdown d-none"></div>
+            </div>
+            <button class="btn btn-outline-secondary position-relative" id="notificationBtn"
+                onclick="window.location.href='/chat/'">
+                <i class="bi bi-bell"></i>
+                <span id="chatNotificationBadge"
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger {% if stats.unread_messages == 0 %}d-none{% endif %}">
+                    {{ stats.unread_messages }}
+                </span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Quick Actions -->
+    <div class="mb-4 d-flex gap-2">
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newProjectModal">
+            <i class="bi-plus-circle me-2"></i>New Project
+        </button>
+        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#newCastingModal">
+            <i class="bi-megaphone me-2"></i>Post Casting
+        </button>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-xl-4 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary"><i class="bi-folder"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.active_projects }}</h3>
+                    <p>Active Projects</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-success"><i class="bi-people"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.applications }}</h3>
+                    <p>Applications</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-md-6 mb-3">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning"><i class="bi-chat"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.unread_messages }}</h3>
+                    <p>New Messages</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Projects -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div
+                    class="card-header bg-transparent py-3 d-flex justify-content-between align-items-center border-bottom border-secondary">
+                    <h5 class="mb-0 fw-bold">Recent Projects</h5>
+                    <a href="/my_projects/" class="text-decoration-none small text-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% for i in 3proj %}
+                    <div class="project-item">
+                        <div class="project-badge">
+                            <i class="bi-camera-reels"></i>
+                        </div>
+                        <div class="flex-grow-1 project-info">
+                            <h5>{{i.project_title}}</h5>
+                            <p class="project-meta">{{i.project_type}} • {{i.project_status}}</p>
+                            <div class="d-flex gap-3 small text-muted">
+                                <span><i class="bi-clock me-1"></i>{{i.created_at|date:"M d, Y"}}</span>
+                                <span><i class="bi-person me-1"></i> {{ i.application_count|default:'0' }}
+                                    applications</span>
+                            </div>
+                        </div>
+
+                        <!-- Manage Dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                                Manage
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-dark border-secondary">
+                                <li><a class="dropdown-item" href="/creators/projects/{{i.id}}/"><i
+                                            class="bi-pencil me-2"></i>Edit</a></li>
+                                <li>
+                                    <hr class="dropdown-divider border-secondary">
+                                </li>
+                                <li>
+                                    <button class="dropdown-item text-danger" data-bs-toggle="modal"
+                                        data-bs-target="#deleteProjectModal{{i.id}}">
+                                        <i class="bi-trash me-2"></i>Delete
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Widgets -->
+        <div class="col-lg-4">
+
+            <!-- Deadlines -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent py-3 border-bottom border-secondary">
+                    <h5 class="mb-0 fw-bold">Upcoming Deadlines</h5>
+                </div>
+                <div class="card-body">
+                    {% for i in deadline %}
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-dark border border-secondary rounded p-2 text-center me-3"
+                            style="min-width: 50px;">
+                            <div class="fw-bold text-primary">{{ i.deadline|date:"d" }}</div>
+                            <small class="text-muted" style="font-size: 0.7rem;">{{ i.deadline|date:"M"|upper }}</small>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{i.project_title}}</h6>
+                            <small class="text-muted">{{i.role_title}}</small>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- New Project Modal -->
+<div class="modal fade" id="newProjectModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form role="form" action="/project/" method="post" enctype="multipart/form-data" id="createProjectForm">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Project Title</label>
+                            <input type="text" class="form-control" name="project_title" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" name="project_type">
+                                <option value="feature-film">Feature Film</option>
+                                <option value="short-film">Short Film</option>
+                                <option value="documentary">Documentary</option>
+                                <option value="series">Web Series</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Project Description</label>
+                        <textarea class="form-control" rows="4" name="project_description"
+                            placeholder="Describe your project..."></textarea>
+                    </div>
+
+                    <!-- Media Upload Section -->
+                    <div class="mb-3">
+                        <label class="form-label">Project Media (Image or Video)</label>
+
+                        <!-- Hidden Input -->
+                        <input type="file" id="mediaInput" name="media" accept="image/*,video/*" class="d-none">
+                        <!-- Name will be changed dynamically to image or video upon selection/form submit or we handle it in JS -->
+
+                        <div class="upload-area mb-3" onclick="document.getElementById('mediaInput').click()">
+                            <div class="d-flex flex-column align-items-center text-muted">
+                                <i class="bi bi-images fs-2 mb-2"></i>
+                                <span>Add Photo or Video</span>
+                                <small>or drag and drop</small>
+                            </div>
+                        </div>
+
+                        <div id="previewGrid" class="media-preview-grid"></div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Genre</label>
+                            <input type="text" class="form-control" name="genre" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="project_status" required>
+                                <option value="Pre-Production">Pre-Production</option>
+                                <option value="Production">Production</option>
+                                <option value="Post-Production">Post-Production</option>
+                                <option value="Casting">Casting</option>
+                                <option value="Released">Released</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Casting Modal -->
+<div class="modal fade" id="newCastingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Post New Casting Call</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form role="form" action="/casting/" method="post" id="dashboardCastingForm" novalidate>
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Casting Role Title</label>
+                            <input type="text" class="form-control" name="role_title"
+                                placeholder="e.g., Lead Actress, Boom Operator" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Associated Project</label>
+                            <select class="form-select" name="associated_project" required>
+                                <option value="" disabled selected>Select an existing project</option>
+                                {% for i in proj %}
+                                <option value="{{i.id}}">{{i.project_title}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Role Category</label>
+                        <select class="form-select" name="role_category">
+                            <option value="actor">Actor/Actress</option>
+                            <option value="voice">Voice Artist</option>
+                            <option value="crew">Crew/Tech</option>
+                            <option value="music">Musician/Sound</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Required Gender</label>
+                            <select class="form-select" name="required_gender">
+                                <option value="any">Any</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="non-binary">Non-Binary</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Required Age Range (Optional)</label>
+                            <input type="text" class="form-control" name="age_range"
+                                placeholder="e.g., 25-35, Teenager">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role Description</label>
+                        <textarea class="form-control" rows="4" name="role_description"
+                            placeholder="Detail the application instructions..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Role Requirements</label>
+                        <textarea class="form-control" rows="6" name="role_requirements"
+                            placeholder="Detail the character, specific skills needed..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Compensation/Pay</label>
+                            <input type="text" class="form-control" name="compensation"
+                                placeholder="e.g., $500/day, TBD, Non-Paid/Credit Only" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Application Deadline</label>
+                            <input type="date" class="form-control" name="deadline" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Post Casting Call</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Delete Project Modals -->
+{% for i in 3proj %}
+<div class="modal fade" id="deleteProjectModal{{i.id}}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Delete Project?</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ i.project_title }}</strong>?</p>
+                <p class="text-danger small mb-0"><i class="bi bi-exclamation-triangle me-1"></i> This will also
+                    delete all associated casting calls. This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="/creators/delete_project/{{ i.id }}/" method="POST" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Delete Project</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Image Editor Modal -->
+<div class="modal fade" id="imageEditorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Image</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-dark text-center" style="height: 500px;">
+                <img id="editorImage" src="" style="max-width: 100%; max-height: 100%;">
+            </div>
+            <div class="modal-footer border-secondary justify-content-between">
+                <div>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperRotate(-90)"><i class="bi bi-arrow-counterclockwise"></i></button>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperRotate(90)"><i class="bi bi-arrow-clockwise"></i></button>
+                    <button type="button" class="btn btn-outline-secondary text-white"
+                        onclick="window.cropperReset()"><i class="bi bi-arrow-repeat"></i> Reset</button>
+                </div>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Video Editor Modal -->
+<div class="modal fade" id="videoEditorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Edit Video</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-3 bg-dark text-center">
+                <video id="editorVideo" controls class="w-100 rounded" style="max-height: 400px;"></video>
+
+                <div class="mt-3 px-3">
+                    <div class="d-flex justify-content-between text-muted small mb-1">
+                        <span>Start: <span id="lblStart">0.0</span>s</span>
+                        <span>End: <span id="lblEnd">--</span>s</span>
+                    </div>
+                    <div class="progress bg-secondary" style="height: 6px;">
+                        <div id="trimProgress" class="progress-bar bg-primary" style="width: 0%; margin-left: 0%;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-center gap-3 mt-3">
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setTrimStart()">Set Start
+                        Current</button>
+                    <button type="button" class="btn btn-outline-warning btn-sm" onclick="previewLoop()">Preview
+                        Loop</button>
+                    <button type="button" class="btn btn-outline-info btn-sm" onclick="setTrimEnd()">Set End
+                        Current</button>
+                </div>
+                <div class="d-flex justify-content-center gap-3 mt-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="clearTrim()">Clear
+                        Trim</button>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-primary w-100" id="saveVideoEditBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize User Search
+        initUserSearch('userSearchInput', 'userSearchResults');
+
+        // --- Media Upload Handling ---
+        const mediaInput = document.getElementById('mediaInput');
+        const previewGrid = document.getElementById('previewGrid');
+        const projectForm = document.getElementById('createProjectForm');
+
+        // --- Image Editor Variables ---
+        let cropper;
+        let imageEditorModal;
+        const editorImage = document.getElementById('editorImage');
+        let currentEditingFile = null;
+        let selectedFile = null; // Store the single file
+
+        // --- Video Editor Variables ---
+        let trimData = {}; // Store trim data keyed by filename, though we only handle one file
+        let currentVideoStart = 0;
+        let currentVideoEnd = null;
+        let videoEditorModal;
+        const editorVideo = document.getElementById('editorVideo');
+
+
+        // Initialize Modals
+        if (document.getElementById('imageEditorModal')) {
+            imageEditorModal = new bootstrap.Modal(document.getElementById('imageEditorModal'));
+        }
+        if (document.getElementById('videoEditorModal')) {
+            videoEditorModal = new bootstrap.Modal(document.getElementById('videoEditorModal'));
+        }
+
+        // Handle File Selection
+        if (mediaInput) {
+            mediaInput.addEventListener('change', function (e) {
+                if (e.target.files && e.target.files.length > 0) {
+                    selectedFile = e.target.files[0]; // Only one file for project
+                    renderPreview();
+                }
+            });
+        }
+
+        // Handle custom validation for Dashboard Post Casting form
+        const dashCastingForm = document.getElementById('dashboardCastingForm');
+        if (dashCastingForm) {
+            dashCastingForm.addEventListener('submit', function (e) {
+                const roleTitle = dashCastingForm.querySelector('input[name="role_title"]');
+                const project = dashCastingForm.querySelector('select[name="associated_project"]');
+                const comp = dashCastingForm.querySelector('input[name="compensation"]');
+                const deadline = dashCastingForm.querySelector('input[name="deadline"]');
+
+                if (!roleTitle.value.trim()) {
+                    e.preventDefault();
+                    showToast('Please enter a Role Title', 'error');
+                    roleTitle.focus();
+                    return;
+                }
+                if (!project.value) {
+                    e.preventDefault();
+                    showToast('Please select a Project', 'error');
+                    project.focus();
+                    return;
+                }
+                if (!comp.value.trim()) {
+                    e.preventDefault();
+                    showToast('Please enter Compensation details', 'error');
+                    comp.focus();
+                    return;
+                }
+                if (!deadline.value) {
+                    e.preventDefault();
+                    showToast('Please select an Application Deadline', 'error');
+                    deadline.focus();
+                    return;
+                }
+            });
+        }
+
+        function renderPreview() {
+            previewGrid.innerHTML = '';
+            if (!selectedFile) return;
+
+            const file = selectedFile;
+            const isImage = file.type.startsWith('image/');
+            const isVideo = file.type.startsWith('video/');
+            const url = URL.createObjectURL(file);
+
+            const div = document.createElement('div');
+            div.className = 'media-preview-item';
+            div.style.width = '150px';
+            div.style.height = '150px';
+
+            if (isImage) {
+                div.innerHTML = `<img src="${url}">`;
+            } else if (isVideo) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.preload = 'metadata';
+                video.onloadeddata = function () { this.currentTime = 0.5; };
+                div.appendChild(video);
+            }
+
+            // Actions
+            const actions = document.createElement('div');
+            actions.className = 'preview-actions';
+
+            const editBtn = document.createElement('button');
+            editBtn.className = 'preview-btn';
+            editBtn.innerHTML = '<i class="bi bi-pencil"></i>';
+            editBtn.type = 'button';
+
+            if (isImage) {
+                editBtn.onclick = () => openImageEditor(file);
+            } else {
+                editBtn.onclick = () => openVideoEditor(file);
+            }
+            actions.appendChild(editBtn);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'preview-btn bg-danger';
+            removeBtn.innerHTML = '<i class="bi bi-x"></i>';
+            removeBtn.type = 'button';
+            removeBtn.onclick = () => {
+                selectedFile = null;
+                mediaInput.value = '';
+                previewGrid.innerHTML = '';
+                trimData = {};
+            };
+            actions.appendChild(removeBtn);
+
+            div.appendChild(actions);
+            previewGrid.appendChild(div);
+        }
+
+        // --- Image Editor Logic ---
+        function openImageEditor(file) {
+            currentEditingFile = file;
+            const url = URL.createObjectURL(file);
+            editorImage.src = url;
+
+            // Wait for image to load before destroying old cropper and creating new
+            editorImage.onload = () => {
+                if (cropper) {
+                    cropper.destroy();
+                }
+                cropper = new Cropper(editorImage, {
+                    aspectRatio: 16 / 9, // Default to 16:9 for projects
+                    viewMode: 1,
+                    autoCropArea: 1,
+                });
+                imageEditorModal.show();
+            };
+        }
+
+        window.cropperRotate = (deg) => {
+            if (cropper) cropper.rotate(deg);
+        };
+        window.cropperReset = () => {
+            if (cropper) cropper.reset();
+        };
+
+        document.getElementById('saveEditBtn').addEventListener('click', function () {
+            if (!cropper) return;
+
+            cropper.getCroppedCanvas().toBlob((blob) => {
+                // Create a new File object
+                const newFile = new File([blob], selectedFile.name, { type: 'image/jpeg' });
+                selectedFile = newFile;
+
+                // Update the input files
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(newFile);
+                mediaInput.files = dataTransfer.files;
+
+                renderPreview();
+                imageEditorModal.hide();
+            }, 'image/jpeg');
+        });
+
+        // --- Video Editor Logic ---
+        // Add hidden input for trim data
+        if (projectForm && !projectForm.querySelector('input[name="trim_data"]')) {
+            const trimInput = document.createElement('input');
+            trimInput.type = 'hidden';
+            trimInput.name = 'trim_data';
+            projectForm.appendChild(trimInput);
+
+            projectForm.addEventListener('submit', function () {
+                trimInput.value = JSON.stringify(trimData);
+            });
+        }
+
+        function openVideoEditor(file) {
+            const url = URL.createObjectURL(file);
+            editorVideo.src = url;
+
+            // Load existing trim
+            const meta = trimData[file.name] || {};
+            currentVideoStart = meta.start || 0;
+            currentVideoEnd = meta.end || null;
+
+            editorVideo.currentTime = currentVideoStart;
+            updateTrimUI();
+
+            videoEditorModal.show();
+        }
+
+        window.updateTrimUI = function () { // Expose globally for onloadedmetadata
+            document.getElementById('lblStart').innerText = currentVideoStart.toFixed(1);
+            const dur = editorVideo.duration;
+            document.getElementById('lblEnd').innerText = currentVideoEnd ? currentVideoEnd.toFixed(1) : (dur ? dur.toFixed(1) : '--');
+
+            if (dur) {
+                const startPct = (currentVideoStart / dur) * 100;
+                const endPct = currentVideoEnd ? (currentVideoEnd / dur) * 100 : 100;
+                const width = endPct - startPct;
+                const progressBar = document.getElementById('trimProgress');
+                progressBar.style.marginLeft = startPct + '%';
+                progressBar.style.width = width + '%';
+            }
+        };
+
+        editorVideo.onloadedmetadata = function () {
+            updateTrimUI();
+        };
+
+        window.setTrimStart = function () {
+            currentVideoStart = editorVideo.currentTime;
+            if (currentVideoEnd !== null && currentVideoStart >= currentVideoEnd) {
+                currentVideoEnd = null;
+            }
+            updateTrimUI();
+        };
+
+        window.setTrimEnd = function () {
+            currentVideoEnd = editorVideo.currentTime;
+            if (currentVideoEnd <= currentVideoStart) {
+                alert("End time must be after start time");
+                currentVideoEnd = null;
+            }
+            updateTrimUI();
+        };
+
+        window.clearTrim = function () {
+            currentVideoStart = 0;
+            currentVideoEnd = null;
+            updateTrimUI();
+        };
+
+        window.previewLoop = function () {
+            editorVideo.currentTime = currentVideoStart;
+            editorVideo.play();
+
+            const checkStop = setInterval(() => {
+                if (editorVideo.paused) {
+                    clearInterval(checkStop);
+                    return;
+                }
+                const end = currentVideoEnd || editorVideo.duration;
+                if (editorVideo.currentTime >= end) {
+                    editorVideo.pause();
+                    editorVideo.currentTime = currentVideoStart;
+                    clearInterval(checkStop);
+                }
+            }, 100);
+        };
+
+        document.getElementById('saveVideoEditBtn').addEventListener('click', function () {
+            trimData[selectedFile.name] = {
+                start: currentVideoStart,
+                end: currentVideoEnd
+            };
+            videoEditorModal.hide();
+        });
+
+        // Prevent selecting past dates for deadlines
+        const todayForMin = new Date().toISOString().split('T')[0];
+        const deadlineInputsForCasting = document.querySelectorAll('input[name="deadline"]');
+        deadlineInputsForCasting.forEach(input => {
+            input.setAttribute('min', todayForMin);
+        });
+
+    });
+</script>
+{% endblock %}

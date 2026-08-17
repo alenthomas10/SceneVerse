@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>SceneVerse - Registration</title>
+
+    <!-- CSS FILES -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200;0,400;0,600;0,700;1,200;1,700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'registration/css/register.css' %}">
+</head>
+
+<body>
+    <style>
+        :root {
+            --primary-color: #8b6b4c;
+            --primary-hover: #6d4c3d;
+            --bg-color: #1a1a1a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Navbar Overrides */
+        .navbar {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .navbar-brand,
+        .nav-link {
+            color: var(--text-color) !important;
+        }
+
+        .nav-link.active {
+            color: var(--primary-color) !important;
+        }
+
+        /* Registration Container */
+        .registration-form-container {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Forms */
+        .form-control,
+        .form-select {
+            background-color: rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid var(--border-color);
+            color: var(--text-color) !important;
+            padding: 12px;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            background-color: rgba(0, 0, 0, 0.5) !important;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.25);
+            color: white !important;
+        }
+
+        .form-label {
+            color: var(--text-muted);
+        }
+
+        /* Custom Checkbox/Radio */
+        .form-check-input {
+            background-color: rgba(0, 0, 0, 0.3);
+            border-color: var(--border-color);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        /* Buttons */
+        .custom-btn {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .custom-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .custom-border-btn {
+            background: transparent;
+            border: 1px solid var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .custom-border-btn:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Messages Styling - Floating Toast */
+        .messages-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            width: auto;
+            min-width: 300px;
+            max-width: 90%;
+        }
+
+        .toast-message {
+            background: rgba(0, 0, 0, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            color: white !important;
+            border-radius: 12px;
+            padding: 12px 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 10px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .toast-message.success { border-color: rgba(74, 222, 128, 0.5); }
+        .toast-message.error { border-color: rgba(248, 113, 113, 0.5); }
+        .toast-message.info { border-color: rgba(59, 130, 246, 0.5); }
+
+        .site-footer {
+            border-top: 1px solid var(--border-color);
+            background-color: #111;
+            padding-top: 3rem;
+            padding-bottom: 3rem;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.7);
+            transition: color 0.3s ease;
+            z-index: 10;
+        }
+
+        .password-toggle:hover {
+            color: var(--primary-color);
+        }
+    </style>
+    <main>
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand d-flex align-items-center" href="/">
+                    <span class="brand-icon"></span>
+                    SceneVerse
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-lg-auto">
+                        <li class="nav-item">
+                            <a class="nav-link click-scroll" href="/">Home</a>
+                        </li>
+
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login/">Login</a>
+                        </li>
+                    </ul>
+
+                    <div class="ms-lg-3">
+                        <a class="btn custom-btn custom-border-btn active" href="/register/">
+                            Registration
+                            <i class="bi-arrow-up-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <section class="registration-section section-padding" id="section_1">
+            <div class="section-overlay"></div>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-12 mx-auto">
+                        <div class="registration-form-container">
+                            <div class="registration-header text-center mb-5">
+                                <em class="small-text">Join the Community</em>
+                                <h2 class="text-white">Create Your Account</h2>
+                                <p class="text-white">Start your creative journey with SceneVerse</p>
+                            </div>
+                            {% if messages %}
+                            <div class="messages-container">
+                                {% for message in messages %}
+                                <div class="toast-message {{ message.tags }}">
+                                    {% if message.tags == 'success' %}<i class="bi bi-check-circle text-success"></i>
+                                    {% elif message.tags == 'error' %}<i class="bi bi-exclamation-circle text-danger"></i>
+                                    {% endif %}
+                                    {{ message }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+
+                            <form method="POST" enctype="multipart/form-data" id="registerForm" class="custom-form register-form"
+ role="form" action="#">
+                                {% csrf_token %}
+                                <div class="row">
+                                    <div class="col-lg-6 col-12">
+                                        <label for="first-name" class="form-label">First Name <sup
+                                                class="text-danger">*</sup></label>
+                                        <input type="text" name="first-name" pattern="[A-Za-z]+" id="first-name"
+                                            class="form-control" placeholder="John" required>
+                                    </div>
+
+                                    <div class="col-lg-6 col-12">
+                                        <label for="last-name" class="form-label">Last Name <sup
+                                                class="text-danger">*</sup></label>
+                                        <input type="text" name="last-name" id="last-name" class="form-control"
+                                            placeholder="Doe" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <label for="email" class="form-label">Email Address <sup
+                                                class="text-danger">*</sup></label>
+                                        <input type="email" name="email" id="email" class="form-control"
+                                            placeholder="john.doe@example.com" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <label class="form-label">Role <sup class="text-danger">*</sup></label>
+                                        <div class="role-selection">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="role" id="creator"
+                                                    value="creator">
+                                                <label class="form-check-label" for="creator">Creator</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="role" id="artist"
+                                                    value="artist">
+                                                <label class="form-check-label" for="artist">Artist</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4" id="creator-roles" style="display: none;">
+                                    <div class="col-12">
+                                        <label for="creator-role" class="form-label">Creator Type <sup
+                                                class="text-danger">*</sup></label>
+                                        <select class="form-select" id="creator-role" name="creator-role">
+                                            <option value="" selected disabled>Select your role</option>
+                                            <option value="director">Director</option>
+                                            <option value="producer">Producer</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4" id="artist-roles" style="display: none;">
+                                    <div class="col-12">
+                                        <label for="artist-role" class="form-label">Artist Type <sup
+                                                class="text-danger">*</sup></label>
+                                        <select class="form-select" id="artist-role" name="artist-role">
+                                            <option value="" selected disabled>Select your role</option>
+                                            <option value="actor">Actor</option>
+                                            <option value="editor">Editor</option>
+                                            <option value="photographer">Photographer</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-lg-6 col-12">
+                                        <label for="password" class="form-label">Password <sup
+                                                class="text-danger">*</sup></label>
+                                        <div class="password-wrapper">
+                                            <input type="password" name="password"
+                                                pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*_=+-]).{8,16}$"
+                                                id="password" class="form-control" placeholder="••••••••" required>
+                                            <span class="password-toggle" onclick="togglePassword('password')">
+                                                <i class="bi bi-eye"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-6 col-12">
+                                        <label for="confirm-password" class="form-label">Confirm Password <sup
+                                                class="text-danger">*</sup></label>
+                                        <div class="password-wrapper">
+                                            <input type="password" name="confirm-password" id="confirm-password"
+                                                class="form-control" placeholder="••••••••" required>
+                                            <span class="password-toggle" onclick="togglePassword('confirm-password')">
+                                                <i class="bi bi-eye"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--                                <div class="row mt-4">-->
+                                <!--                                    <div class="col-12">-->
+                                <!--                                        <div class="form-check">-->
+                                <!--                                            <input class="form-check-input" type="checkbox" id="terms" required>-->
+                                <!--                                            <label class="form-check-label" for="terms">-->
+                                <!--                                                I agree to the <a href="#" class="text-white">Terms and Conditions</a> and <a href="#" class="text-white">Privacy Policy</a>-->
+                                <!--                                            </label>-->
+                                <!--                                        </div>-->
+                                <!--                                    </div>-->
+                                <!--                                </div>-->
+
+                                <div class="row mt-5">
+                                    <div class="col-lg-8 col-12 mx-auto">
+                                        <button type="submit" id="submitBtn" class="btn custom-btn form-control">Create
+                                            Account</button>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-4">
+                                    <div class="col-12 text-center">
+                                        <p class="text-white">Already have an account? <a href="/login/"
+                                                class="text-white">Login here</a></p>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="site-footer bg-transparent py-5">
+            <div class="container text-center">
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 col-12">
+                        <h4 class="text-white mb-4">Support & Contact</h4>
+                        <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
+                            <!-- Phone -->
+                            <div class="d-flex align-items-center justify-content-center bg-black bg-opacity-25 p-3 rounded" style="min-width: 260px; border: 1px solid rgba(255,255,255,0.1);">
+                                <i class="bi bi-telephone text-primary fs-3 me-3"></i>
+                                <div class="text-start">
+                                    <span class="d-block text-white-50 small text-uppercase fw-bold">Call Us</span>
+                                    <a href="tel:+919074636833" class="text-white text-decoration-none fw-medium">+91 9074636833</a>
+                                </div>
+                            </div>
+                            
+                            <!-- Email -->
+                            <div class="d-flex align-items-center justify-content-center bg-black bg-opacity-25 p-3 rounded" style="min-width: 260px; border: 1px solid rgba(255,255,255,0.1);">
+                                <i class="bi bi-envelope text-info fs-3 me-3"></i>
+                                <div class="text-start">
+                                    <span class="d-block text-white-50 small text-uppercase fw-bold">Email Us</span>
+                                    <a href="mailto:support@sceneverse.com" class="text-white text-decoration-none fw-medium">support@sceneverse.com</a>
+                                </div>
+                            </div>
+
+                            <!-- Hours -->
+                            <div class="d-flex align-items-center justify-content-center bg-black bg-opacity-25 p-3 rounded" style="min-width: 260px; border: 1px solid rgba(255,255,255,0.1);">
+                                <i class="bi bi-clock text-warning fs-3 me-3"></i>
+                                <div class="text-start">
+                                    <span class="d-block text-white-50 small text-uppercase fw-bold">Business Hours</span>
+                                    <span class="text-white fw-medium">Mon - Fri, 9:00 AM - 6:00 PM</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Social Icons -->
+                        <ul class="social-icon mt-4 d-flex justify-content-center list-unstyled gap-3 mb-4">
+                            <li><a href="#" class="social-icon-link bi-facebook text-white fs-4 text-decoration-none"></a></li>
+                            <li><a href="https://x.com/minthu" target="_new" class="social-icon-link bi-twitter text-white fs-4 text-decoration-none"></a></li>
+                            <li><a href="#" class="social-icon-link bi-whatsapp text-white fs-4 text-decoration-none"></a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="row mt-3 pt-4" style="border-top: 1px solid rgba(255,255,255,0.1);">
+                    <div class="col-12 text-center">
+                        <p class="copyright-text mb-0 text-white-50">Copyright © SceneVerse 2025</p>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </main>
+
+    <!-- JAVASCRIPT FILES -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const creatorRadio = document.getElementById('creator');
+            const artistRadio = document.getElementById('artist');
+            const creatorRoles = document.getElementById('creator-roles');
+            const artistRoles = document.getElementById('artist-roles');
+
+            creatorRadio.addEventListener('change', function () {
+                if (this.checked) {
+                    creatorRoles.style.display = 'block';
+                    artistRoles.style.display = 'none';
+                    document.getElementById('artist-role').required = false;
+                    document.getElementById('creator-role').required = true;
+                }
+            });
+
+            artistRadio.addEventListener('change', function () {
+                if (this.checked) {
+                    artistRoles.style.display = 'block';
+                    creatorRoles.style.display = 'none';
+                    document.getElementById('creator-role').required = false;
+                    document.getElementById('artist-role').required = true;
+                }
+            });
+        });
+    </script>
+
+    <script>
+        // Enhanced dropdown styling for better browser compatibility
+        document.addEventListener('DOMContentLoaded', function () {
+            // Success Message Popup Auto-hide
+            const successAlert = document.getElementById('success-alert');
+            if (successAlert) {
+                setTimeout(() => {
+                    successAlert.style.display = 'none';
+                }, 3000);
+            }
+
+            // Double-click prevention
+            const registerForm = document.getElementById('registerForm');
+            if (registerForm) {
+                registerForm.addEventListener('submit', function() {
+                    const btn = document.getElementById('submitBtn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
+                    }
+                });
+            }
+
+            const selects = document.querySelectorAll('.form-select');
+
+            selects.forEach(select => {
+                // Add custom class for additional styling
+                select.classList.add('custom-select-dark');
+
+                // Handle focus states
+                select.addEventListener('focus', function () {
+                    this.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
+                });
+
+                select.addEventListener('blur', function () {
+                    this.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                });
+            });
+
+            // Role selection functionality
+            const creatorRadio = document.getElementById('creator');
+            const artistRadio = document.getElementById('artist');
+            const creatorRoles = document.getElementById('creator-roles');
+            const artistRoles = document.getElementById('artist-roles');
+
+            creatorRadio.addEventListener('change', function () {
+                if (this.checked) {
+                    creatorRoles.style.display = 'block';
+                    artistRoles.style.display = 'none';
+                    document.getElementById('artist-role').required = false;
+                    document.getElementById('creator-role').required = true;
+                }
+            });
+
+            artistRadio.addEventListener('change', function () {
+                if (this.checked) {
+                    artistRoles.style.display = 'block';
+                    creatorRoles.style.display = 'none';
+                    document.getElementById('creator-role').required = false;
+                    document.getElementById('artist-role').required = true;
+                }
+            });
+        });
+
+        // Password toggle functionality
+        function togglePassword(inputId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = passwordInput.parentNode.querySelector('.password-toggle i');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('bi-eye');
+                toggleIcon.classList.add('bi-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('bi-eye-slash');
+                toggleIcon.classList.add('bi-eye');
+            }
+        }
+
+        // Auto-dismiss alerts after 3 seconds
+        setTimeout(function() {
+            const messages = document.querySelectorAll('.toast-message');
+            messages.forEach(function(msg) {
+                msg.style.transition = 'opacity 0.5s ease';
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 3000);
+    </script>
+</body>
+
+</html>

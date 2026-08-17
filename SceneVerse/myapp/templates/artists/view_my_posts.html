@@ -1,0 +1,416 @@
+{% extends 'base_modern.html' %}
+{% load static %}
+
+{% block title %}My Posts - SceneVerse{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'artists/css/artists.css' %}" rel="stylesheet">
+<link href="{% static 'artists/css/casting_calls.css' %}" rel="stylesheet">
+<style>
+    /* Content Header Adjustments */
+    .content-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+    }
+
+    .search-box {
+        position: relative;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .search-box i {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+    }
+
+    .search-box input {
+        width: 100%;
+        padding: 10px 10px 10px 45px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid var(--border-color);
+        color: var(--text-color);
+        outline: none;
+    }
+
+    .search-box input:focus {
+        border-color: var(--primary-color);
+    }
+
+    /* --- SceneVerse Theme Adjustments (Retained for forms) --- */
+    textarea.form-control {
+        background-color: black;
+        border: 1px solid #5d4834;
+        color: white;
+        /* Changed to white for better visibility on dark theme */
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: border 0.3s ease, background-color 0.3s ease;
+        resize: vertical;
+    }
+
+    textarea.form-control:focus {
+        background-color: #111;
+        border-color: #8b6b4c;
+        box-shadow: 0 0 0 0.25rem rgba(139, 107, 76, 0.25);
+        outline: none;
+        color: white;
+    }
+
+    /* REAL SOCIAL MEDIA POST (Modern Feed Style) */
+    .post-card {
+        background: #ffffff;
+        border-radius: 12px;
+        padding: 16px;
+        width: 100%;
+        max-width: 550px;
+        margin: 20px auto;
+        border: 1px solid #f0f0f0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.08);
+        color: #333;
+        /* Ensure text is visible on white card */
+    }
+
+    .post-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .post-header-left {
+        display: flex;
+        align-items: center;
+    }
+
+    .creator-info b {
+        color: #1a1a1a;
+        font-weight: 700;
+        display: block;
+    }
+
+    .creator-info small {
+        color: #888;
+        display: block;
+    }
+
+    .post-card p {
+        color: #333;
+        line-height: 1.5;
+        margin-bottom: 16px;
+    }
+
+    .post-media-container img,
+    .post-media-container video {
+        width: 100%;
+        border-radius: 8px;
+        background: #000;
+        object-fit: contain;
+        max-height: 70vh;
+    }
+
+    .action-bar {
+        display: flex;
+        align-items: center;
+        padding: 4px 0;
+    }
+
+    .action-bar button {
+        background: none;
+        border: none;
+        margin-right: 16px;
+        font-size: 1.3rem;
+        color: #555;
+        cursor: pointer;
+    }
+
+    .like-active {
+        color: #ff3040 !important;
+    }
+
+    .comment-box {
+        background: #f7f7f7;
+        padding: 8px 12px;
+        border-radius: 18px;
+        margin-bottom: 8px;
+        color: #1a1a1a;
+    }
+
+    .comment-author {
+        font-weight: 700;
+        margin-right: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Top Header -->
+<header class="content-header">
+    <div class="d-flex align-items-center w-100">
+        <button class="btn sidebar-toggle d-lg-none me-3 p-0 text-white border-0 bg-transparent">
+            <i class="bi bi-list fs-3"></i>
+        </button>
+        <div class="search-box">
+            <i class="bi-search"></i>
+            <input type="text" placeholder="Search projects...">
+        </div>
+        <div class="ms-auto d-flex align-items-center gap-2">
+            <button class="btn btn-icon position-relative text-white" id="notificationBtn">
+                <i class="bi bi-bell fs-5"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                    style="font-size: 0.6rem;">5</span>
+            </button>
+            <button class="btn btn-outline-primary" onclick="openMessages()">
+                <i class="bi bi-chat me-2"></i>Messages
+            </button>
+        </div>
+    </div>
+</header>
+
+<!-- Content Area -->
+<div class="content-area px-4 pb-5">
+    <section class="page-header mb-4">
+        <h1 class="h2 fw-bold mb-2">My Posts</h1>
+        <p class="text-muted">Explore your own talents</p>
+    </section>
+
+    <section class="casting-calls-grid">
+        <div class="row">
+            {% for post in posts %}
+            <div class="col-12 mb-4">
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-header-left">
+                            <div class="creator-info">
+                                <b class="text">Posted on {{ post.created_at|date:"M d, Y " }}</b><br>
+                                <p class="text-muted small ">Updated {{ post.updated_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p>{{ post.caption }}</p>
+
+                    <div class="post-media-container">
+                        {% if post.all_media %}
+                        <div id="mediaCarousel{{ post.id }}" class="carousel slide" data-bs-interval="false">
+                            <div class="carousel-inner">
+                                {% for media_item in post.all_media %}
+                                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                                    {% if media_item.image %}
+                                    <img src="{{ media_item.image.url }}" class="d-block w-100" alt="Post Image">
+                                    {% elif media_item.video %}
+                                    <video controls class="d-block w-100">
+                                        <source src="{{ media_item.video.url }}" type="video/mp4">
+                                    </video>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% if post.all_media|length > 1 %}
+                            <button class="carousel-control-prev" type="button"
+                                data-bs-target="#mediaCarousel{{ post.id }}" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button"
+                                data-bs-target="#mediaCarousel{{ post.id }}" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="action-bar">
+                        <form method="POST" action="/artistlike/">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                            <button class="{% if post.id in likes %}like-active{% endif %}">
+                                <i class="bi-heart{% if post.id in likes %}-fill{% endif %}"></i>
+                                <span class="ms-1">{{ post.artistpostlike_set.count }}</span>
+                            </button>
+                        </form>
+                        <button class="view-comments-btn" data-bs-toggle="collapse"
+                            data-bs-target="#comments{{ post.id }}">
+                            <i class="bi-chat"></i>
+                            <span class="ms-1">{{ post.artistpostcomment_set.count }}</span>
+                        </button>
+                    </div>
+                    <div class="divider border-bottom my-2"></div>
+
+                    <div class="collapse" id="comments{{ post.id }}">
+                        <div class="p-3">
+                            {% for comment in comments %}
+                            {% if comment.post.id == post.id %}
+                            {% with commenter_register=comment.commented_by %}
+                            {% with commenter_details=commenter_register.artistdetails_set.all.0 %}
+                            <div class="comment-box d-flex align-items-start mb-2">
+                                <div style="margin-right: 8px;">
+                                    {% if commenter_details and commenter_details.avatarphoto %}
+                                    <img src="{{ commenter_details.avatarphoto.url }}"
+                                        alt="{{ commenter_register.first_name }}"
+                                        style="width: 30px; height: 30px; border-radius: 50%; object-fit: cover;">
+                                    {% else %}
+                                    <i class="bi bi-person-circle" style="font-size: 30px; color: #ccc;"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="comment-author">{{ comment.commented_by.first_name }} {{
+                                        comment.commented_by.last_name }}</span><br>
+                                    {{ comment.comment }}
+                                    <div class="text-muted small">{{ comment.created_at|date:"M d, Y H:i" }}</div>
+                                </div>
+                            </div>
+                            {% endwith %}
+                            {% endwith %}
+                            {% endif %}
+                            {% endfor %}
+
+                            <form method="POST" action="/artistcomment/">
+                                {% csrf_token %}
+                                <input type="hidden" name="post_id" value="{{ post.id }}">
+                                <textarea name="comment" class="form-control mb-2" placeholder="Write a comment..."
+                                    required></textarea>
+                                <button class="btn btn-primary w-100">Post Comment</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">No posts available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.querySelectorAll('.action-bar form[action="/artistlike/"]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const actionUrl = form.getAttribute('action');
+            const postId = form.querySelector('input[name="post_id"]').value;
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const likeButton = form.querySelector('button');
+            const icon = likeButton.querySelector('i');
+
+            likeButton.disabled = true;
+
+            fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'post_id': postId
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (data.is_liked) {
+                            icon.classList.remove('bi-heart');
+                            icon.classList.add('bi-heart-fill');
+                            likeButton.classList.add('like-active');
+                        } else {
+                            icon.classList.remove('bi-heart-fill');
+                            icon.classList.add('bi-heart');
+                            likeButton.classList.remove('like-active');
+                        }
+                        console.log(`Post ${data.post_id} now has ${data.count} likes. Liked state: ${data.is_liked}`);
+                    } else {
+                        console.error('Like failed:', data.error || 'Unknown error');
+                    }
+                })
+                .catch(error => console.error('Fetch error:', error))
+                .finally(() => {
+                    likeButton.disabled = false;
+                });
+        });
+    });
+    document.querySelectorAll('.post-card form[action="/artistcomment/"]').forEach(form => {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const actionUrl = form.getAttribute('action');
+            const postId = form.querySelector('input[name="post_id"]').value;
+            const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const commentTextarea = form.querySelector('textarea[name="comment"]');
+            const commentBody = commentTextarea.value;
+
+            if (!commentBody.trim()) {
+                commentTextarea.focus();
+                return;
+            }
+
+            const postCard = form.closest('.post-card');
+            const commentsCollapse = postCard.querySelector(`#comments${postId}`);
+            const commentsContainer = commentsCollapse ? commentsCollapse.querySelector('.p-3') : null;
+
+            const postButton = form.querySelector('button');
+            postButton.disabled = true;
+            postButton.textContent = 'Posting...';
+
+
+            fetch(actionUrl, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'post_id': postId,
+                    'comment': commentBody
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success && data.comment_html) {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = data.comment_html.trim();
+                        const newCommentElement = tempDiv.firstElementChild;
+                        if (commentsContainer) {
+                            commentsContainer.insertBefore(newCommentElement, form);
+                        }
+                        commentTextarea.value = '';
+                        newCommentElement.style.backgroundColor = '#fffbe6';
+                        setTimeout(() => {
+                            newCommentElement.style.backgroundColor = '';
+                        }, 1000);
+
+                    } else {
+                        console.error('Comment failed:', data.error || 'Unknown error');
+                        alert('Could not post comment. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert('A network error occurred while posting the comment.');
+                })
+                .finally(() => {
+                    postButton.disabled = false;
+                    postButton.textContent = 'Post Comment';
+                });
+        });
+    });
+</script>
+{% endblock %}
