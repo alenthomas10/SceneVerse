@@ -1,0 +1,1 @@
+web: gunicorn SceneVerse.wsgi:application --log-file -

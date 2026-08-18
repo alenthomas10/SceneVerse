@@ -3,6 +3,9 @@ db.sqlite3
 __pycache__/ 
 *.pyc 
 .env 
+staticfiles/
+SceneVerse/staticfiles/
 SceneVerse/media/applications/attachments/ 
 *.MP4 
 *.mp4 
+
